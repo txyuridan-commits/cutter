@@ -1,641 +1,192 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="裁床师傅">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#F4F4F6">
+<title>裁床师傅</title>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231C1C1E'/%3E%3Ctext x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-weight='bold'%3E裁%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="./manifest.json">
 <script>
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js');
-    });
+    window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); });
   }
 </script>
-  const manifest = {
-    "name": "裁床师傅",
-    "short_name": "裁床师傅",
-    "start_url": "./",
-    "display": "standalone",
-    "background_color": "#F4F4F6",
-    "theme_color": "#F4F4F6",
-    "icons": [{
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231C1C1E'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='white' font-weight='bold'%3E裁%3C/text%3E%3C/svg%3E",
-      "sizes": "192x192",
-      "type": "image/svg+xml"
-    }]
-  };
-  const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-  const manifestURL = URL.createObjectURL(blob);
-  document.write(`<link rel="manifest" href="${manifestURL}">`);
-</script>
-<!-- 👆 PWA 配置结束 👆 -->
-
 <style>
-  :root {
-    --bg: #F4F4F6;
-    --surface: #FFFFFF;
-    --surface-dim: #F9F9FA;
-    --border: #E5E5EA;
-    --border-strong: #CCCCCC;
-    --text: #1C1C1E;
-    --text-dim: #8E8E93;
-    --accent: #1C1C1E;
-    --glow-blue: #00E5FF; 
-    --glow-yellow: #FFD700;
-    --glow-green: #39FF14;
-    --glow-orange: #FF8C00;
-    --red: #FF3B30;
-    --radius: 16px;
-    --ease: cubic-bezier(.2,.8,.2,1);
-    --shadow: 0 4px 16px rgba(0,0,0,0.04);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
-    background: var(--bg); color: var(--text); min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center;
-    overflow: hidden; 
-  }
-  
-  .phone {
-    width: 100%; height: 100%;
-    position: relative; padding: 20px 18px;
-    display: flex; flex-direction: column; gap: 16px;
-    background: var(--bg);
-  }
-  
-  @media (min-width: 500px) {
-    body { padding: 20px; justify-content: center; }
-    .phone {
-      width: 390px; height: 800px; border-radius: 40px;
-      border: 1px solid var(--border);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-    }
-  }
-  
-  @media (max-width: 500px) {
-    .phone {
-      padding-top: calc(12px + env(safe-area-inset-top, 20px)); 
-      padding-bottom: calc(12px + env(safe-area-inset-bottom, 20px)); 
-      padding-left: 16px;
-      padding-right: 16px;
-    }
-  }
-
+  :root { --bg: #F4F4F6; --surface: #FFFFFF; --surface-dim: #F9F9FA; --border: #E5E5EA; --border-strong: #CCCCCC; --text: #1C1C1E; --text-dim: #8E8E93; --accent: #1C1C1E; --glow-blue: #00E5FF; --glow-yellow: #FFD700; --glow-green: #39FF14; --glow-orange: #FF8C00; --red: #FF3B30; --radius: 16px; --ease: cubic-bezier(.2,.8,.2,1); --shadow: 0 4px 16px rgba(0,0,0,0.04); }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  html, body { height: 100%; width: 100%; overflow: hidden; position: fixed; overscroll-behavior: none; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; color: var(--text); display: flex; flex-direction: column; align-items: center; }
+  .phone { width: 100%; height: 100%; position: relative; padding: calc(12px + env(safe-area-inset-top, 20px)) 16px calc(12px + env(safe-area-inset-bottom, 20px)) 16px; display: flex; flex-direction: column; gap: 16px; background: var(--bg); }
   .screen { display: none; flex-direction: column; gap: 16px; height: 100%; min-height: 0; position: relative; }
   .screen.active { display: flex; animation: screenIn 0.3s var(--ease); }
-  @keyframes screenIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .dims, .features, .library, .piece-list, .notch-list { 
-    -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
-  }
-
-  .topbar {
-    display: flex; align-items: center; justify-content: space-between;
-    flex-shrink: 0; gap: 8px;
-  }
-  .back-btn {
-    width: 48px; height: 48px; border-radius: 12px;
-    border: 1px solid var(--border);
-    background: var(--surface); color: var(--text);
-    font-size: 28px; font-weight: 600;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; flex-shrink: 0; transition: all 0.2s;
-  }
+  @keyframes screenIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .dims, .features, .library, .piece-list, .notch-list { -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 8px; }
+  .back-btn { width: 48px; height: 48px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 28px; font-weight: 600; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
   .back-btn:active { background: var(--border); transform: scale(0.92); }
   .back-btn.hidden { visibility: hidden; }
-  
   .brand { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
-  .brand .logo {
-    width: 44px; height: 44px; border-radius: 10px;
-    background: var(--accent); color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px; font-weight: 800; flex-shrink: 0;
-  }
-  .brand .name {
-    font-size: 24px; font-weight: 800; letter-spacing: 0.5px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .step-pill {
-    font-size: 16px; font-weight: 700; color: var(--text);
-    background: var(--surface); border: 1px solid var(--border);
-    padding: 8px 12px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
-  }
-
-  .hint {
-    display: flex; align-items: center; gap: 10px;
-    padding: 16px 20px; font-size: 18px; color: var(--text-dim);
-    flex-shrink: 0; background: var(--surface); border-radius: var(--radius);
-    border: 1px solid var(--border);
-  }
-  .hint .dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: var(--accent); flex-shrink: 0;
-  }
+  .brand .logo { width: 44px; height: 44px; border-radius: 10px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; flex-shrink: 0; }
+  .brand .name { font-size: 24px; font-weight: 800; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .step-pill { font-size: 16px; font-weight: 700; color: var(--text); background: var(--surface); border: 1px solid var(--border); padding: 8px 12px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+  .hint { display: flex; align-items: center; gap: 10px; padding: 16px 20px; font-size: 18px; color: var(--text-dim); flex-shrink: 0; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); }
+  .hint .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
   .hint .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-
-  .prompt {
-    text-align: center; color: var(--text-dim);
-    font-size: 18px; font-weight: 600; flex-shrink: 0; min-height: 24px;
-  }
-
+  .prompt { text-align: center; color: var(--text-dim); font-size: 18px; font-weight: 600; flex-shrink: 0; min-height: 24px; }
   .row { display: flex; gap: 12px; flex-shrink: 0; margin-top: auto; padding-top: 10px; }
-  .row button {
-    flex: 1; height: 64px; border-radius: var(--radius);
-    border: 1px solid var(--border);
-    background: var(--surface); color: var(--text);
-    font-size: 22px; font-weight: 700; cursor: pointer; font-family: inherit;
-    transition: all 0.15s cubic-bezier(.2,.8,.2,1);
-  }
+  .row button { flex: 1; height: 64px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 22px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
   .row button:active { background: var(--surface-dim); transform: scale(0.95); }
-
-  .big-btn {
-    flex: 1; height: 72px; border-radius: var(--radius);
-    border: none; font-size: 24px; font-weight: 800;
-    cursor: pointer; font-family: inherit;
-    transition: all 0.15s cubic-bezier(.2,.8,.2,1);
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
+  .big-btn { flex: 1; height: 72px; border-radius: var(--radius); border: none; font-size: 24px; font-weight: 800; cursor: pointer; font-family: inherit; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .big-btn:active { transform: scale(0.95); }
-  .big-btn.primary {
-    background: var(--accent); color: #fff;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  .big-btn.ghost {
-    background: var(--surface); border: 1px solid var(--border); color: var(--text);
-  }
-
-  /* 首屏 */
-  .hero {
-    flex: 1; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; text-align: center; gap: 12px; padding: 0 8px;
-    min-height: 0;
-  }
-  .hero .mark {
-    width: 120px; height: 120px; border-radius: 32px;
-    background: var(--surface); border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 56px; margin-bottom: 20px;
-    box-shadow: var(--shadow);
-  }
+  .big-btn.primary { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .big-btn.ghost { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+  .hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; padding: 0 8px; min-height: 0; }
+  .hero .mark { width: 120px; height: 120px; border-radius: 32px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 56px; margin-bottom: 20px; box-shadow: var(--shadow); }
   .hero h1 { font-size: 40px; font-weight: 800; letter-spacing: 1px; color: var(--text); }
   .hero p { font-size: 20px; color: var(--text-dim); line-height: 1.6; font-weight: 600; }
-  
-  .quick-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    gap: 16px; width: 100%; margin-top: 24px;
-  }
-  .quick-card {
-    padding: 24px 8px; border-radius: var(--radius);
-    background: var(--surface); border: 1px solid var(--border);
-    display: flex; flex-direction: column; align-items: center; gap: 12px;
-    cursor: pointer; transition: all 0.2s var(--ease); box-shadow: var(--shadow);
-  }
+  .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; width: 100%; margin-top: 24px; }
+  .quick-card { padding: 24px 8px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow); }
   .quick-card:active { transform: scale(0.94); background: var(--surface-dim); }
   .quick-card .qi { font-size: 40px; }
   .quick-card .qt { font-size: 20px; font-weight: 800; color: var(--text); }
-
-  /* 列表卡片 */
   .dims { padding: 12px; display: flex; flex-direction: column; gap: 12px; flex: 1; overflow-y: auto; min-height: 0; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); }
-  .dim-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 24px 20px; border-radius: 12px;
-    background: var(--surface); border: 1px solid transparent;
-    transition: all 0.2s var(--ease); cursor: pointer;
-    flex-shrink: 0;
-  }
+  .dim-row { display: flex; align-items: center; justify-content: space-between; padding: 24px 20px; border-radius: 12px; background: var(--surface); border: 1px solid transparent; transition: all 0.2s; cursor: pointer; flex-shrink: 0; }
   .dim-row:active { background: var(--surface-dim); transform: scale(0.98); }
-  .dim-row.active {
-    background: var(--surface-dim); border-color: var(--border-strong);
-  }
+  .dim-row.active { background: var(--surface-dim); border-color: var(--border-strong); }
   .dim-row .label { font-size: 24px; color: var(--text-dim); font-weight: 700; }
   .dim-row.active .label { color: var(--text); }
-  .dim-row .value {
-    font-size: 36px; font-weight: 800; color: var(--text);
-    font-variant-numeric: tabular-nums;
-  }
+  .dim-row .value { font-size: 36px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
   .dim-row .value .unit { font-size: 18px; color: var(--text-dim); margin-left: 8px; font-weight: 600; }
   .dim-row.done .value { color: var(--accent); }
-
-  /* 特征页 */
   .features { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex: 1; min-height: 0; }
   .feature-group { padding: 18px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
-  .feature-group h3 {
-    font-size: 20px; color: var(--text-dim); font-weight: 800;
-    padding: 0 4px 14px; display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px solid var(--border);
-  }
-  .feature-group h3 .add-btn {
-    font-size: 18px; color: var(--text); background: var(--surface-dim);
-    border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px;
-    cursor: pointer; font-weight: 800; transition: all 0.15s; margin-left: 6px;
-  }
+  .feature-group h3 { font-size: 20px; color: var(--text-dim); font-weight: 800; padding: 0 4px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+  .feature-group h3 .add-btn { font-size: 18px; color: var(--text); background: var(--surface-dim); border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 800; transition: all 0.15s; margin-left: 6px; }
   .feature-group h3 .add-btn:active { background: var(--border); transform: scale(0.92); }
-  .feature-item {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 8px; border-radius: 10px;
-    font-size: 22px; gap: 8px; cursor: pointer; font-weight: 700;
-  }
+  .feature-item { display: flex; align-items: center; justify-content: space-between; padding: 18px 8px; border-radius: 10px; font-size: 22px; gap: 8px; cursor: pointer; font-weight: 700; }
   .feature-item.off { opacity: 0.4; }
   .feature-item .feat-name { flex: 1; }
-  .feature-item .feat-pos {
-    font-size: 18px; color: var(--text-dim); background: var(--surface-dim);
-    padding: 6px 12px; border-radius: 6px; white-space: nowrap;
-  }
-  .feature-item .switch {
-    width: 64px; height: 38px; border-radius: 19px;
-    background: var(--border-strong); position: relative; transition: all 0.25s; flex-shrink: 0;
-  }
+  .feature-item .feat-pos { font-size: 18px; color: var(--text-dim); background: var(--surface-dim); padding: 6px 12px; border-radius: 6px; white-space: nowrap; }
+  .feature-item .switch { width: 64px; height: 38px; border-radius: 19px; background: var(--border-strong); position: relative; transition: all 0.25s; flex-shrink: 0; }
   .feature-item .switch.on { background: var(--accent); }
-  .feature-item .switch::after {
-    content: ''; position: absolute; top: 3px; left: 3px;
-    width: 32px; height: 32px; border-radius: 50%; background: #fff;
-    transition: left 0.25s;
-  }
+  .feature-item .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 32px; height: 32px; border-radius: 50%; background: #fff; transition: left 0.25s; }
   .feature-item .switch.on::after { left: 29px; }
-
-  /* ===== 优化后的剪口列表样式 ===== */
   .notch-list { display: flex; flex-direction: column; gap: 12px; max-height: 250px; overflow-y: auto; padding-top: 10px; }
-  .notch-row {
-    display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    padding: 16px 20px; border-radius: 16px;
-    background: var(--surface); border: 2px solid var(--border);
-    font-size: 22px; cursor: pointer; transition: all 0.2s;
-    flex-shrink: 0; font-weight: 800;
-  }
-  .notch-row.selected {
-    border-color: var(--text);
-  }
-  .notch-row .n-id {
-    color: #fff; font-weight: 800; font-size: 20px;
-    width: 36px; height: 36px; border-radius: 8px;
-    background: var(--text); /* 默认黑色 */
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
+  .notch-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-radius: 16px; background: var(--surface); border: 2px solid var(--border); font-size: 22px; cursor: pointer; transition: all 0.2s; flex-shrink: 0; font-weight: 800; }
+  .notch-row.selected { border-color: var(--text); }
+  .notch-row .n-id { color: #fff; font-weight: 800; font-size: 20px; width: 36px; height: 36px; border-radius: 8px; background: var(--text); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .notch-row .n-pos { color: var(--text-dim); flex: 1; text-align: center; }
   .notch-row .n-size { color: var(--text); font-weight: 800; font-variant-numeric: tabular-nums; }
-  
-  /* 删除按钮黄色 */
-  .notch-row .n-del {
-    width: 48px; height: 48px; border-radius: 12px;
-    background: #FFF9E6; /* 浅黄背景 */
-    color: #FFC107; /* 黄色叉 */
-    font-size: 24px; font-weight: 800;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; flex-shrink: 0; transition: all 0.2s;
-  }
+  .notch-row .n-del { width: 48px; height: 48px; border-radius: 12px; background: #FFF9E6; color: #FFC107; font-size: 24px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
   .notch-row .n-del:active { background: rgba(255, 193, 7, 0.3); transform: scale(0.85); }
-
-  /* ===== 画布区全面黑底荧光 ===== */
-  .canvas {
-    background: #050505; 
-    border-radius: var(--radius);
-    border: 1px solid #222;
-    display: flex; align-items: center; justify-content: center; overflow: hidden;
-    position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  }
+  .canvas { background: #050505; border-radius: var(--radius); border: 1px solid #222; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
   .canvas svg { width: 100%; height: 100%; }
   .feat-canvas { height: 220px; flex-shrink: 0; }
   .preview-canvas { flex: 1; min-height: 0; }
   .layout-canvas { flex: 1; min-height: 0; touch-action: none; }
-  
   .layout-canvas [data-piece-idx] { cursor: grab; transition: filter 0.1s; }
   .layout-canvas [data-piece-idx]:active { cursor: grabbing; }
-  
   .layout-canvas [data-piece-idx].dragging path { stroke: #FFFFFF !important; stroke-width: 2px !important; }
   .layout-canvas [data-piece-idx].snapped path { filter: drop-shadow(0 0 8px var(--glow-blue)); }
   .layout-canvas [data-piece-idx].snapped text { filter: drop-shadow(0 0 4px var(--glow-blue)); }
-
-  .canvas-float-bar {
-    position: absolute; top: 16px; left: 16px; right: 16px;
-    display: flex; justify-content: space-between;
-    pointer-events: none; z-index: 10;
-  }
+  .canvas-float-bar { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; pointer-events: none; z-index: 10; }
   .float-group { display: flex; gap: 10px; pointer-events: auto; }
-  .float-btn {
-    width: 48px; height: 48px; border-radius: 12px;
-    background: rgba(0,0,0,0.6); border: 1px solid #333;
-    color: var(--glow-blue); display: flex; align-items: center; justify-content: center;
-    font-size: 24px; font-weight: 700; cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-    backdrop-filter: blur(4px);
-    transition: all 0.15s var(--ease);
-  }
+  .float-btn { width: 48px; height: 48px; border-radius: 12px; background: rgba(0,0,0,0.6); border: 1px solid #333; color: var(--glow-blue); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.5); backdrop-filter: blur(4px); transition: all 0.15s; }
   .float-btn:active { background: rgba(255,255,255,0.1); transform: scale(0.9); }
   .float-btn:disabled { opacity: 0.3; }
-
-  /* 底部控制 */
-  .bottom-controls {
-    display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;
-  }
-  
-  /* === 优化后的布幅设置条 === */
-  .fabric-bar {
-    display: flex; flex-direction: column; gap: 12px;
-    padding: 16px 20px;
-    background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
-    box-shadow: var(--shadow);
-  }
-  .fabric-header {
-    display: flex; justify-content: space-between; align-items: center; width: 100%;
-  }
-  .fabric-title {
-    font-size: 20px; font-weight: 800; color: var(--text);
-  }
-  .fabric-info {
-    font-size: 18px; color: var(--text); font-weight: 800;
-  }
-  .fabric-inputs {
-    display: flex; align-items: center; gap: 16px; width: 100%;
-  }
-  .fabric-input-group {
-    flex: 1; display: flex; flex-direction: column; gap: 6px;
-  }
-  .fabric-input-group .f-sub {
-    font-size: 16px; color: var(--text-dim); font-weight: 700; text-align: center;
-  }
-  .fabric-input-group .f-val {
-    padding: 14px; border-radius: 12px;
-    border: 1px solid var(--border);
-    background: var(--surface-dim); color: var(--text);
-    font-size: 28px; font-weight: 800; text-align: center;
-    font-variant-numeric: tabular-nums;
-    cursor: pointer; transition: transform 0.15s;
-  }
+  .bottom-controls { display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
+  .fabric-bar { display: flex; flex-direction: column; gap: 12px; padding: 16px 20px; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
+  .fabric-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+  .fabric-title { font-size: 20px; font-weight: 800; color: var(--text); }
+  .fabric-info { font-size: 18px; color: var(--text); font-weight: 800; }
+  .fabric-inputs { display: flex; align-items: center; gap: 16px; width: 100%; }
+  .fabric-input-group { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .fabric-input-group .f-sub { font-size: 16px; color: var(--text-dim); font-weight: 700; text-align: center; }
+  .fabric-input-group .f-val { padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-dim); color: var(--text); font-size: 28px; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; cursor: pointer; transition: transform 0.15s; }
   .fabric-input-group .f-val:active { transform: scale(0.92); }
   .fabric-inputs .f-x { color: var(--text-dim); font-weight: 800; font-size: 28px; }
-
-  .piece-list {
-    max-height: 200px; overflow-y: auto;
-    display: flex; flex-direction: column; gap: 12px;
-    flex-shrink: 0;
-  }
-  .piece-group {
-    padding: 16px; display: flex; flex-direction: column; gap: 12px;
-    background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
-  }
-  .piece-group-title {
-    font-size: 22px; font-weight: 800; color: var(--text);
-    border-bottom: 1px solid var(--border); padding-bottom: 12px;
-  }
-  .piece-item-row {
-    display: flex; align-items: center; justify-content: space-between;
-    font-size: 24px; gap: 10px;
-  }
-  .piece-item-row .pi-name { 
-    color: var(--text-dim); font-weight: 700; 
-    flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
+  .piece-list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
+  .piece-group { padding: 16px; display: flex; flex-direction: column; gap: 12px; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); }
+  .piece-group-title { font-size: 22px; font-weight: 800; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+  .piece-item-row { display: flex; align-items: center; justify-content: space-between; font-size: 24px; gap: 10px; }
+  .piece-item-row .pi-name { color: var(--text-dim); font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .piece-item-row .pi-name b { color: var(--text); margin-right: 8px; font-weight: 800; }
   .piece-item-row .pr-ctrls { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-  
-  /* 稍微缩小加减按钮，防止文字被挤压换行 */
-  .piece-item-row .pr-btn {
-    width: 44px; height: 44px; border-radius: 12px;
-    border: 1px solid var(--border); background: var(--surface);
-    color: var(--text); font-size: 24px; font-weight: 700;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: transform 0.1s;
-  }
+  .piece-item-row .pr-btn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 24px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
   .piece-item-row .pr-btn:active { background: var(--surface-dim); transform: scale(0.85); }
-  .piece-item-row .pr-qty {
-    min-width: 40px; text-align: center;
-    font-weight: 800; color: var(--text); font-size: 26px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* === 优化后的预览数量控制条 === */
-  .qty-bar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 20px; flex-shrink: 0; gap: 12px;
-    background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow);
-  }
+  .piece-item-row .pr-qty { min-width: 40px; text-align: center; font-weight: 800; color: var(--text); font-size: 26px; font-variant-numeric: tabular-nums; }
+  .qty-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; flex-shrink: 0; gap: 12px; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
   .qty-bar .qty-label { font-size: 22px; color: var(--text-dim); font-weight: 700; white-space: nowrap; }
   .qty-bar .qty-controls { display: flex; align-items: center; gap: 10px; }
-  .qty-bar .qty-btn {
-    width: 52px; height: 52px; border-radius: 12px;
-    border: 1px solid var(--border); background: var(--surface);
-    color: var(--text); font-size: 28px; font-weight: 600; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: transform 0.1s;
-  }
+  .qty-bar .qty-btn { width: 52px; height: 52px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 28px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
   .qty-bar .qty-btn:active { background: var(--surface-dim); transform: scale(0.85); }
-  .qty-bar .qty-val {
-    width: 80px; height: 52px; border-radius: 12px;
-    border: 1px solid var(--border); background: var(--surface-dim);
-    color: var(--text); font-size: 30px; font-weight: 800;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-    transition: transform 0.15s;
-  }
+  .qty-bar .qty-val { width: 80px; height: 52px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface-dim); color: var(--text); font-size: 30px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s; }
   .qty-bar .qty-val:active { transform: scale(0.92); }
-
-  /* 款式库 */
   .library { flex: 1; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; min-height: 0; }
-  .lib-card {
-    padding: 20px; display: flex; gap: 12px; align-items: center;
-    cursor: pointer; transition: all 0.2s;
-    background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow);
-  }
+  .lib-card { padding: 20px; display: flex; gap: 12px; align-items: center; cursor: pointer; transition: all 0.2s; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
   .lib-card:active { transform: scale(0.97); }
   .lib-card.selected { border-color: var(--text); }
-  
-  /* 最前面的框变小 */
-  .lib-check {
-    width: 28px; height: 28px; border-radius: 8px;
-    border: 2px solid var(--border); background: var(--surface);
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-weight: 900; font-size: 16px; flex-shrink: 0;
-    transition: all 0.2s var(--ease);
-  }
+  .lib-check { width: 28px; height: 28px; border-radius: 8px; border: 2px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 16px; flex-shrink: 0; transition: all 0.2s; }
   .lib-card.selected .lib-check { background: var(--text); border-color: var(--text); transform: scale(1.1); }
-  
-  .lib-thumb {
-    width: 68px; height: 68px; border-radius: 12px;
-    background: var(--surface-dim); border: 1px solid var(--border);
-    flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden;
-  }
-  
-  /* 确保文字区域有足够空间，不会被右侧按钮挤压 */
+  .lib-thumb { width: 68px; height: 68px; border-radius: 12px; background: var(--surface-dim); border: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
   .lib-info { flex: 1; min-width: 0; }
   .lib-info .title { font-size: 20px; font-weight: 800; color: var(--text); word-wrap: break-word; line-height: 1.4; }
   .lib-info .meta { font-size: 16px; color: var(--text-dim); margin-top: 8px; font-weight: 600; }
-  
   .lib-actions { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
-  .lib-act-btn {
-    width: 44px; height: 44px; border-radius: 10px;
-    background: var(--surface-dim); border: 1px solid var(--border);
-    color: var(--text-dim); font-size: 20px; font-weight: 800;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.15s;
-  }
+  .lib-act-btn { width: 44px; height: 44px; border-radius: 10px; background: var(--surface-dim); border: 1px solid var(--border); color: var(--text-dim); font-size: 20px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
   .lib-act-btn:active { transform: scale(0.9); }
   .lib-act-btn.del { color: #FFC107; background: rgba(255,193,7,0.1); border-color: rgba(255,193,7,0.2); }
-  .lib-act-btn.del:active { background: rgba(255,193,7,0.2); }
-  .lib-act-btn.edit:active { background: rgba(0,0,0,0.05); color: var(--text); }
-
-  /* ==================== 导出台面板 ==================== */
-  .print-panel {
-    background: var(--surface); padding: 24px; border-radius: var(--radius);
-    display: flex; flex-direction: column; gap: 20px; box-shadow: var(--shadow);
-    margin-top: 20px;
-  }
+  .print-panel { background: var(--surface); padding: 24px; border-radius: var(--radius); display: flex; flex-direction: column; gap: 20px; box-shadow: var(--shadow); margin-top: 20px; }
   .print-panel h3 { font-size: 24px; font-weight: 800; }
-
-  /* 极简数字键盘面板 */
-  .numpad-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.2);
-    z-index: 1000; display: none; opacity: 0; transition: opacity 0.25s;
-  }
+  .numpad-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 1000; display: none; opacity: 0; transition: opacity 0.25s; }
   .numpad-overlay.show { display: block; opacity: 1; }
-  
-  .numpad-panel {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--bg); border-top: 1px solid var(--border);
-    border-radius: 24px 24px 0 0;
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
-    z-index: 1001; 
-    transform: translateY(100%);
-    transition: transform 0.3s cubic-bezier(.2,.8,.2,1);
-    padding: 24px; 
-    padding-bottom: calc(24px + env(safe-area-inset-bottom, 20px));
-    display: flex; flex-direction: column; gap: 20px;
-  }
+  .numpad-panel { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); border-top: 1px solid var(--border); border-radius: 24px 24px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); z-index: 1001; transform: translateY(100%); transition: transform 0.3s cubic-bezier(.2,.8,.2,1); padding: 24px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 20px)); display: flex; flex-direction: column; gap: 20px; }
   .numpad-panel.show { transform: translateY(0); }
-  @media (min-width: 500px) {
-    .numpad-panel { max-width: 390px; margin: 0 auto; left: 50%; transform: translate(-50%, 100%); border-radius: 24px 24px 0 0; padding-bottom: 24px;}
-    .numpad-panel.show { transform: translate(-50%, 0); }
-  }
-  
-  .numpad-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0 8px;
-  }
-  
-  /* 左上角文字变为蓝色 */
+  .numpad-header { display: flex; justify-content: space-between; align-items: center; padding: 0 8px; }
   .numpad-header .np-label { font-size: 26px; font-weight: 800; color: #007AFF; }
-  
-  .numpad-header .np-val {
-    font-size: 48px; font-weight: 800; color: var(--text);
-    font-variant-numeric: tabular-nums; min-height: 64px;
-    display: flex; align-items: flex-end; justify-content: flex-end; flex: 1;
-  }
-  .numpad-header .np-val .caret {
-    display: inline-block; width: 4px; height: 44px; background: var(--text);
-    margin-left: 6px; animation: blink 1s step-end infinite; margin-bottom: 8px;
-  }
+  .numpad-header .np-val { font-size: 48px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; min-height: 64px; display: flex; align-items: flex-end; justify-content: flex-end; flex: 1; }
+  .numpad-header .np-val .caret { display: inline-block; width: 4px; height: 44px; background: var(--text); margin-left: 6px; animation: blink 1s step-end infinite; margin-bottom: 8px; }
   @keyframes blink { 50% { opacity: 0; } }
-
-  .numpad-keys {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
-  }
-  .nk-btn {
-    height: 80px; border-radius: 16px;
-    background: var(--surface); color: var(--text); font-size: 36px; font-weight: 600;
-    border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: background 0.1s, transform 0.1s; box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-  }
+  .numpad-keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .nk-btn { height: 80px; border-radius: 16px; background: var(--surface); color: var(--text); font-size: 36px; font-weight: 600; border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.1s, transform 0.1s; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
   .nk-btn:active { background: var(--border); transform: scale(0.92); }
   .nk-btn.special { font-size: 28px; color: var(--text-dim); }
-  
-  .nk-btn.confirm {
-    grid-column: span 2; background: var(--text); color: #fff; font-size: 28px; font-weight: 800;
-    border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    position: relative; overflow: hidden;
-  }
-  
-  @keyframes pop-shrink-blue {
-    0% { transform: scale(1); background: var(--text); color: #fff; }
-    40% { transform: scale(0.85); background: var(--glow-blue); color: #fff; box-shadow: 0 0 15px var(--glow-blue); }
-    100% { transform: scale(1); background: var(--text); color: #fff; }
-  }
-  
-  .nk-btn.confirm.anim-shrink {
-    animation: pop-shrink-blue 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  }
-
-  /* 提示 */
-  .toast {
-    position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
-    padding: 16px 32px; border-radius: 12px;
-    background: var(--text); color: #fff; font-size: 20px; font-weight: 700;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    opacity: 0; pointer-events: none; transition: all 0.3s var(--ease);
-    z-index: 999; white-space: nowrap;
-  }
+  .nk-btn.confirm { grid-column: span 2; background: var(--text); color: #fff; font-size: 28px; font-weight: 800; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative; overflow: hidden; }
+  .nk-btn.confirm.anim-shrink { animation: pop-shrink-blue 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  @keyframes pop-shrink-blue { 0% { transform: scale(1); background: var(--text); color: #fff; } 40% { transform: scale(0.85); background: var(--glow-blue); color: #fff; box-shadow: 0 0 15px var(--glow-blue); } 100% { transform: scale(1); background: var(--text); color: #fff; } }
+  .toast { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 16px 32px; border-radius: 12px; background: var(--text); color: #fff; font-size: 20px; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,0.2); opacity: 0; pointer-events: none; transition: all 0.3s var(--ease); z-index: 999; white-space: nowrap; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(-8px); }
   .toast.warn { background: var(--red); }
-
-  /* ==================== 礼花和完成特效 ==================== */
-  .confetti-layer {
-    position: fixed; inset: 0; pointer-events: none; z-index: 2000;
-    overflow: hidden; display: flex; justify-content: center; align-items: center;
-  }
-  .confetti-piece {
-    position: absolute; width: 12px; height: 12px;
-    border-radius: 2px;
-    top: 50%; left: 50%;
-    will-change: transform;
-  }
-  
-  .success-overlay {
-    position: fixed; inset: 0; pointer-events: none; z-index: 2001;
-    display: flex; justify-content: center; align-items: center;
-    opacity: 0; transition: opacity 0.3s;
-  }
+  .confetti-layer { position: fixed; inset: 0; pointer-events: none; z-index: 2000; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+  .confetti-piece { position: absolute; width: 12px; height: 12px; border-radius: 2px; top: 50%; left: 50%; will-change: transform; }
+  .success-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 2001; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s; }
   .success-overlay.show { opacity: 1; }
-  
-  .success-content {
-    background: var(--surface); padding: 40px 80px; border-radius: 36px;
-    display: flex; flex-direction: column; align-items: center; gap: 24px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
-    transform: scale(0.5); opacity: 0;
-  }
-  .success-overlay.show .success-content {
-    animation: successPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  }
-  @keyframes successPop {
-    0% { transform: scale(0.5); opacity: 0; }
-    60% { transform: scale(1.05); opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
-  }
-  
-  .success-icon {
-    width: 100px; height: 100px; border-radius: 50%;
-    background: var(--glow-green); color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 16px rgba(57, 255, 20, 0.4);
-  }
+  .success-content { background: var(--surface); padding: 40px 80px; border-radius: 36px; display: flex; flex-direction: column; align-items: center; gap: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05); transform: scale(0.5); opacity: 0; }
+  .success-overlay.show .success-content { animation: successPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  @keyframes successPop { 0% { transform: scale(0.5); opacity: 0; } 60% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+  .success-icon { width: 100px; height: 100px; border-radius: 50%; background: var(--glow-green); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(57, 255, 20, 0.4); }
   .success-icon svg { width: 50px; height: 50px; stroke-width: 3; }
   .success-text { font-size: 40px; font-weight: 800; color: var(--text); letter-spacing: 2px; }
 </style>
 </head>
 <body>
 
-<!-- 礼花与完成弹窗 -->
 <div class="confetti-layer" id="confetti-layer"></div>
 <div class="success-overlay" id="success-overlay">
   <div class="success-content">
     <div class="success-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="20 6 9 17 4 12"></polyline>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
     </div>
     <span class="success-text">已完成</span>
   </div>
 </div>
 
-<!-- 遮罩层 -->
 <div class="numpad-overlay" id="numpad-overlay" onclick="closeNumpad()"></div>
 
-<!-- 极简数字键盘 -->
 <div class="numpad-panel" id="numpad-panel">
   <div class="numpad-header">
     <span class="np-label" id="np-label">宽度</span>
@@ -660,16 +211,13 @@
 </div>
 
 <div class="phone">
-
   <div class="screen active" id="s-home">
     <div class="topbar">
       <div class="back-btn hidden">←</div>
       <div class="brand"><div class="logo">裁</div><div class="name">裁床师傅</div></div>
       <span class="step-pill">新建</span>
     </div>
-    <div class="hint">
-      <span class="dot"></span><span class="txt" id="h-home">等待输入</span>
-    </div>
+    <div class="hint"><span class="dot"></span><span class="txt" id="h-home">等待输入</span></div>
     <div class="hero">
       <div class="mark">✂️</div>
       <h1>裁床师傅</h1>
@@ -692,9 +240,7 @@
       <div class="brand"><div class="logo">裁</div><div class="name">报尺寸</div></div>
       <span class="step-pill" id="dims-step">第 1 项</span>
     </div>
-    <div class="hint">
-      <span class="dot"></span><span class="txt" id="h-dims">点击下方行输入尺寸</span>
-    </div>
+    <div class="hint"><span class="dot"></span><span class="txt" id="h-dims">点击下方行输入尺寸</span></div>
     <div class="dims" id="dims-list"></div>
     <div class="prompt" id="dims-prompt">长度(横向) -> 宽度(竖向) -> 圆角 -> 缝份</div>
     <div class="row">
@@ -709,9 +255,7 @@
       <div class="brand"><div class="logo">裁</div><div class="name">制造特征</div></div>
       <span class="step-pill">特征设置</span>
     </div>
-    <div class="hint">
-      <span class="dot"></span><span class="txt" id="h-features">点击标记进行微调</span>
-    </div>
+    <div class="hint"><span class="dot"></span><span class="txt" id="h-features">点击标记进行微调</span></div>
     <div class="canvas feat-canvas" id="features-canvas"></div>
     <div class="features" id="features-list"></div>
     <div class="row">
@@ -726,9 +270,7 @@
       <div class="brand"><div class="logo">裁</div><div class="name">裁片预览</div></div>
       <span class="step-pill" id="preview-step">数量</span>
     </div>
-    <div class="hint">
-      <span class="dot"></span><span class="txt" id="h-preview">确认无误后保存或导出</span>
-    </div>
+    <div class="hint"><span class="dot"></span><span class="txt" id="h-preview">确认无误后保存或导出</span></div>
     <div class="canvas preview-canvas" id="preview-canvas"></div>
     <div class="qty-bar">
       <span class="qty-label">做几件？</span>
@@ -750,9 +292,7 @@
       <div class="brand"><div class="logo">裁</div><div class="name">款式库</div></div>
       <span class="step-pill" id="lib-count">0 个</span>
     </div>
-    <div class="hint">
-      <span class="dot"></span><span class="txt" id="h-library">选择款式排版</span>
-    </div>
+    <div class="hint"><span class="dot"></span><span class="txt" id="h-library">选择款式排版</span></div>
     <div class="library" id="library-list"></div>
     <div class="row" style="padding-top:12px">
       <button onclick="go('home')">返回</button>
@@ -766,9 +306,6 @@
       <div class="brand"><div class="logo">裁</div><div class="name">排版</div></div>
       <span class="step-pill" id="layout-step">利用率 0%</span>
     </div>
-    
-    <div class="hint" id="layout-hint" style="display:none;"><span class="dot"></span><span class="txt" id="h-layout">—</span></div>
-    
     <div class="canvas layout-canvas" id="layout-canvas">
       <div class="canvas-float-bar">
         <div class="float-group">
@@ -780,9 +317,7 @@
         </div>
       </div>
     </div>
-    
     <div class="bottom-controls">
-      <!-- 优化后的布幅设置 -->
       <div class="fabric-bar">
         <div class="fabric-header">
           <span class="fabric-title">布幅设置</span>
@@ -793,18 +328,14 @@
             <span class="f-sub">长度 (横向)</span>
             <div class="f-val" id="fw-val" onclick="openNumpad('布幅长度 (横向)', '', (v)=>{ if(!v)return; state.fabricWidth = parseInt(v); document.getElementById('fw-val').textContent = state.fabricWidth; renderLayout(); })"></div>
           </div>
-          
           <span class="f-x">×</span>
-          
           <div class="fabric-input-group">
             <span class="f-sub">宽度 (竖向)</span>
             <div class="f-val" id="fl-val" onclick="openNumpad('布幅宽度 (竖向)', '', (v)=>{ if(!v)return; state.fabricLength = parseInt(v); document.getElementById('fl-val').textContent = state.fabricLength; renderLayout(); })"></div>
           </div>
         </div>
       </div>
-      
       <div class="piece-list" id="piece-list"></div>
-      
       <div class="row" style="gap:12px; margin-top:4px;">
         <button class="big-btn ghost" onclick="autoArrangeAll()" style="flex:0.8">✨ 一键排版</button>
         <button class="big-btn primary" onclick="go('export')" style="flex:1.2">导出 PLT</button>
@@ -818,62 +349,31 @@
       <div class="brand"><div class="logo">裁</div><div class="name">导出</div></div>
       <span class="step-pill">生成 PLT</span>
     </div>
-    
-    <!-- 仅保留生成切割文件面板 -->
     <div class="print-panel">
       <h3>导出切割文件</h3>
       <div style="font-size:18px;color:var(--text-dim);margin-bottom:20px;line-height:1.6;font-weight:600;">
-        根据当前排版生成三图层 HPGL 格式文件：<br>
-        • 轮廓 (CUT)<br>
-        • 刀口 (NOTCH)<br>
-        • 挖孔 (HOLE)
+        根据当前排版生成三图层 HPGL 格式文件：<br>• 轮廓 (CUT)<br>• 刀口 (NOTCH)<br>• 挖孔 (HOLE)
       </div>
       <button class="big-btn primary" onclick="doExportPLT(this)" style="height: 72px; font-size: 24px;">⚡ 生成切割文件 (.plt)</button>
     </div>
-
-    <div class="row" style="margin-top: auto;">
-      <button onclick="go('layout')">返回排版</button>
-    </div>
+    <div class="row" style="margin-top: auto;"><button onclick="go('layout')">返回排版</button></div>
   </div>
-
   <div class="toast" id="toast"></div>
 </div>
 
 <script>
-/* ==================== 全局状态 ==================== */
 const state = {
   step: 'home',
-  params: {
-    template: 'seat_pad_cover',
-    width: 600, 
-    depth: 460, 
-    cornerRadius: 30,
-    seam: 10,
-  },
+  params: { template: 'seat_pad_cover', width: 600, depth: 460, cornerRadius: 30, seam: 10 },
   features: { zipper: false, vent: false, tie_hole: false, double_stitch: false, fabric: false },
   featurePos: { zipper: 'bottom', vent: 'center', tie_hole: 'corner' },
-  notches: [],
-  selectedNotch: 0,
-  _notchInitDone: false,
-  dimIndex: 0,
-  pieces: [],
-  quantity: 1,
-  layoutItems: [],
-  layoutQty: {},
-  layoutPieces: [],
-  // fabricWidth 控制 X轴(横向), 用户称为"长度"
-  // fabricLength 控制 Y轴(竖向), 用户称为"宽度"
-  fabricWidth: 1600,  
-  fabricLength: 3000, 
-  spacing: 0,
-  _lastLayoutItemsKey: '',
-  _editingId: null,
-  view: { scale: 1, tx: 0, ty: 0 },
-  undoStack: [],
-  redoStack: []
+  notches: [], selectedNotch: 0, _notchInitDone: false, dimIndex: 0,
+  pieces: [], quantity: 1, layoutItems: [], layoutQty: {}, layoutPieces: [],
+  fabricWidth: 1600, fabricLength: 3000, spacing: 0,
+  _lastLayoutItemsKey: '', _editingId: null, view: { scale: 1, tx: 0, ty: 0 },
+  undoStack: [], redoStack: []
 };
 
-// 尺寸录入顺序与文案
 const DIM_SEQ = [
   { key: 'width', label: '长度 (横向)', hint: '比如 长度 1000' },
   { key: 'depth', label: '宽度 (竖向)', hint: '比如 宽度 600' },
@@ -889,348 +389,166 @@ const POS_LABEL = {
 
 let isCelebrating = false;
 
-/* ==================== 礼花与完成特效 ==================== */
 function triggerSuccess(callback) {
-  if (isCelebrating) {
-    if (callback) callback();
-    return;
-  }
+  if (isCelebrating) { if (callback) callback(); return; }
   isCelebrating = true;
-
   const overlay = document.getElementById('success-overlay');
   const layer = document.getElementById('confetti-layer');
-  
-  overlay.classList.add('show');
-  layer.innerHTML = '';
-
+  overlay.classList.add('show'); layer.innerHTML = '';
   const colors = ['#00E5FF', '#FFD700', '#39FF14', '#FF8C00', '#FF3B30', '#FF69B4'];
-  const piecesCount = 50;
-
-  for (let i = 0; i < piecesCount; i++) {
+  for (let i = 0; i < 50; i++) {
     const el = document.createElement('div');
-    el.className = 'confetti-piece';
-    el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-    
-    if (Math.random() > 0.5) el.style.borderRadius = '50%';
-    else el.style.width = '8px'; 
-
+    el.className = 'confetti-piece'; el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    if (Math.random() > 0.5) el.style.borderRadius = '50%'; else el.style.width = '8px'; 
     layer.appendChild(el);
-
-    const startX = window.innerWidth / 2;
-    const startY = window.innerHeight / 2 - 100;
-
-    const angle = Math.random() * Math.PI * 2;
-    const velocity = 100 + Math.random() * 200;
-    const tx = Math.cos(angle) * velocity;
-    const ty = Math.sin(angle) * velocity - 150; 
-
-    const rot = Math.random() * 360;
-    const duration = 1000 + Math.random() * 1000;
-
+    const startX = window.innerWidth / 2, startY = window.innerHeight / 2 - 100;
+    const angle = Math.random() * Math.PI * 2, velocity = 100 + Math.random() * 200;
+    const tx = Math.cos(angle) * velocity, ty = Math.sin(angle) * velocity - 150; 
+    const rot = Math.random() * 360, duration = 1000 + Math.random() * 1000;
     el.animate([
       { transform: `translate(${startX}px, ${startY}px) rotate(0deg) scale(1)`, opacity: 1 },
       { transform: `translate(${startX + tx}px, ${startY + ty}px) rotate(${rot}deg) scale(0.8)`, opacity: 1, offset: 0.4 },
       { transform: `translate(${startX + tx * 1.5}px, ${window.innerHeight + 50}px) rotate(${rot * 2}deg) scale(0.5)`, opacity: 0 }
-    ], {
-      duration: duration,
-      easing: 'cubic-bezier(0.25, 1, 0.5, 1)', 
-      fill: 'forwards'
-    });
+    ], { duration: duration, easing: 'cubic-bezier(0.25, 1, 0.5, 1)', fill: 'forwards' });
   }
-
   setTimeout(() => {
     overlay.classList.remove('show');
-    setTimeout(() => {
-      layer.innerHTML = '';
-      isCelebrating = false;
-      if (callback) callback();
-    }, 400);
+    setTimeout(() => { layer.innerHTML = ''; isCelebrating = false; if (callback) callback(); }, 400);
   }, 1200);
 }
 
-/* ==================== 极简数字键盘逻辑 ==================== */
-let numpadCallback = null;
-let currentNumpadVal = '';
-let numpadAnimating = false;
-
+let numpadCallback = null, currentNumpadVal = '', numpadAnimating = false;
 function openNumpad(label, currentVal, callback) {
-  numpadCallback = callback;
-  currentNumpadVal = ''; // 强制默认空白
-  
-  document.getElementById('np-label').textContent = label;
-  updateNumpadDisplay();
-  
+  numpadCallback = callback; currentNumpadVal = ''; 
+  document.getElementById('np-label').textContent = label; updateNumpadDisplay();
   document.getElementById('numpad-overlay').classList.add('show');
   document.getElementById('numpad-panel').classList.add('show');
 }
-
 function closeNumpad() {
   document.getElementById('numpad-overlay').classList.remove('show');
   document.getElementById('numpad-panel').classList.remove('show');
   numpadCallback = null;
 }
-
-function updateNumpadDisplay() {
-  document.getElementById('np-text').textContent = currentNumpadVal;
-}
-
+function updateNumpadDisplay() { document.getElementById('np-text').textContent = currentNumpadVal; }
 function numpadInput(char) {
   if (char === '.' && currentNumpadVal.includes('.')) return;
   if (currentNumpadVal.length >= 6) return;
   if (currentNumpadVal === '0' && char !== '.') currentNumpadVal = '';
-  currentNumpadVal += char;
-  updateNumpadDisplay();
+  currentNumpadVal += char; updateNumpadDisplay();
 }
-
-function numpadBackspace() {
-  currentNumpadVal = currentNumpadVal.slice(0, -1);
-  updateNumpadDisplay();
-}
-
+function numpadBackspace() { currentNumpadVal = currentNumpadVal.slice(0, -1); updateNumpadDisplay(); }
 function numpadConfirm(btnEl) {
-  if (numpadAnimating) return;
-  numpadAnimating = true;
-
-  if (btnEl) {
-    btnEl.classList.add('anim-shrink');
-  }
-
+  if (numpadAnimating) return; numpadAnimating = true;
+  if (btnEl) btnEl.classList.add('anim-shrink');
   setTimeout(() => {
     if (numpadCallback && currentNumpadVal !== '') {
-      const v = parseFloat(currentNumpadVal);
-      if (!isNaN(v)) numpadCallback(v);
+      const v = parseFloat(currentNumpadVal); if (!isNaN(v)) numpadCallback(v);
     }
-    
     if (state.step === 'dims') {
       if (state.dimIndex < DIM_SEQ.length - 1) {
         startDimensionEntry(state.dimIndex + 1);
-        if (btnEl) btnEl.classList.remove('anim-shrink');
-        numpadAnimating = false;
-        return; 
+        if (btnEl) btnEl.classList.remove('anim-shrink'); numpadAnimating = false; return; 
       } else {
-        closeNumpad();
-        state._notchInitDone = false;
-        triggerSuccess(() => go('features'));
+        closeNumpad(); state._notchInitDone = false; triggerSuccess(() => go('features'));
       }
-    } else {
-      closeNumpad();
-    }
-
-    if (btnEl) btnEl.classList.remove('anim-shrink');
-    numpadAnimating = false;
+    } else { closeNumpad(); }
+    if (btnEl) btnEl.classList.remove('anim-shrink'); numpadAnimating = false;
   }, 350); 
 }
 
-/* ==================== 导航与通用 ==================== */
 let navStack = ['home'];
 function go(name, push = true) {
   if (push && state.step !== name) navStack.push(name);
   state.step = name;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('s-' + name).classList.add('active');
-  
   if (name === 'dims') renderDims();
   if (name === 'features') { ensureDefaultNotches(); renderFeatures(); }
   if (name === 'preview') renderPreview();
   if (name === 'library') renderLibrary();
   if (name === 'layout') enterLayout();
 }
-function back() {
-  if (navStack.length > 1) {
-    navStack.pop();
-    go(navStack[navStack.length - 1], false);
-  }
-}
-function setHeard(text) {
-  const el = document.getElementById('h-' + state.step);
-  if (el) el.textContent = text;
-}
+function back() { if (navStack.length > 1) { navStack.pop(); go(navStack[navStack.length - 1], false); } }
+function setHeard(text) { const el = document.getElementById('h-' + state.step); if (el) el.textContent = text; }
 function showToast(msg, warn = false) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.toggle('warn', warn);
-  t.classList.add('show');
+  const t = document.getElementById('toast'); t.textContent = msg;
+  t.classList.toggle('warn', warn); t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
 }
+function currentPieceSize() { const p = state.params; return { w: p.width + 2*p.seam, h: p.depth + 2*p.seam }; }
 
-function currentPieceSize() {
-  const p = state.params;
-  return { w: p.width + 2*p.seam, h: p.depth + 2*p.seam };
-}
-
-/* ==================== 尺寸页 ==================== */
 function renderDims() {
-  const list = document.getElementById('dims-list');
-  list.innerHTML = '';
+  const list = document.getElementById('dims-list'); list.innerHTML = '';
   DIM_SEQ.forEach((d, i) => {
     const v = state.params[d.key];
-    const row = document.createElement('div');
-    row.className = 'dim-row';
+    const row = document.createElement('div'); row.className = 'dim-row';
     if (i < state.dimIndex) row.classList.add('done');
     if (i === state.dimIndex) row.classList.add('active');
     row.innerHTML = `<span class="label">${d.label}</span><span class="value">${v > 0 ? v : '--'}<span class="unit">毫米</span></span>`;
-    
-    row.addEventListener('click', () => {
-      state.dimIndex = i;
-      renderDims();
-      startDimensionEntry(i);
-    });
+    row.addEventListener('click', () => { state.dimIndex = i; renderDims(); startDimensionEntry(i); });
     list.appendChild(row);
   });
   document.getElementById('dims-step').textContent = `第 ${state.dimIndex+1} / ${DIM_SEQ.length} 项`;
 }
-
 function startDimensionEntry(index) {
-  if (index >= DIM_SEQ.length) { 
-    state._notchInitDone = false;
-    go('features'); 
-    return; 
-  }
-  state.dimIndex = index;
-  renderDims();
-  
-  const d = DIM_SEQ[index];
-  
-  // 强制面板空白
-  openNumpad(d.label, '', (newVal) => {
-    state.params[d.key] = newVal;
-    setHeard(`已记录：${d.label} = ${newVal} 毫米`);
-  });
+  if (index >= DIM_SEQ.length) { state._notchInitDone = false; go('features'); return; }
+  state.dimIndex = index; renderDims(); const d = DIM_SEQ[index];
+  openNumpad(d.label, '', (newVal) => { state.params[d.key] = newVal; setHeard(`已记录：${d.label} = ${newVal} 毫米`); });
 }
-
-function prevDim() { 
-  if (state.dimIndex > 0) { 
-    state.dimIndex--; 
-    renderDims(); 
-    startDimensionEntry(state.dimIndex);
-  } 
-}
-
-// 确认当前尺寸并进入下一项
+function prevDim() { if (state.dimIndex > 0) { state.dimIndex--; renderDims(); startDimensionEntry(state.dimIndex); } }
 function confirmCurrentDim() {
-  const d = DIM_SEQ[state.dimIndex];
-  const val = state.params[d.key];
-  
-  // 如果没填，给个提示并拉起键盘
-  if (!val || val <= 0) {
-    showToast('请先输入尺寸', true);
-    startDimensionEntry(state.dimIndex);
-    return;
-  }
-
-  if (state.dimIndex < DIM_SEQ.length - 1) {
-    state.dimIndex++;
-    renderDims();
-    startDimensionEntry(state.dimIndex);
-  } else {
-    state._notchInitDone = false;
-    triggerSuccess(() => go('features'));
-  }
+  const d = DIM_SEQ[state.dimIndex], val = state.params[d.key];
+  if (!val || val <= 0) { showToast('请先输入尺寸', true); startDimensionEntry(state.dimIndex); return; }
+  if (state.dimIndex < DIM_SEQ.length - 1) { state.dimIndex++; renderDims(); startDimensionEntry(state.dimIndex); }
+  else { state._notchInitDone = false; triggerSuccess(() => go('features')); }
 }
-
-// 保留旧函数以防内部引用报错
-function redoDim() { 
-  state.params[DIM_SEQ[state.dimIndex].key] = 0; 
-  renderDims(); 
-  startDimensionEntry(state.dimIndex);
-}
-
-// 默认只生成一个位于右侧正中间的剪口
 function ensureDefaultNotches() {
-  if (state._notchInitDone) return;
-  state._notchInitDone = true;
+  if (state._notchInitDone) return; state._notchInitDone = true;
   if (state.notches.length > 0) return;
   const { w, h } = currentPieceSize();
-  
-  state.notches = [
-    { dLeft: w, dTop: h/2, size: 5, shape: 'v' }
-  ];
+  state.notches = [{ dLeft: w, dTop: h/2, size: 5, shape: 'v' }];
   state.selectedNotch = 0;
 }
-
 function resetForNew() {
-  state.params = {
-    template: 'seat_pad_cover',
-    width: 600, depth: 460, cornerRadius: 30, seam: 10,
-  };
+  state.params = { template: 'seat_pad_cover', width: 600, depth: 460, cornerRadius: 30, seam: 10 };
   state.features = { zipper: false, vent: false, tie_hole: false, double_stitch: false, fabric: false };
   state.featurePos = { zipper: 'bottom', vent: 'center', tie_hole: 'corner' };
-  state.notches = [];
-  state.selectedNotch = 0;
-  state._notchInitDone = false;
-  state.dimIndex = 0;
-  state.quantity = 1;
-  state.pieces = [];
-  state._editingId = null;
+  state.notches = []; state.selectedNotch = 0; state._notchInitDone = false; state.dimIndex = 0;
+  state.quantity = 1; state.pieces = []; state._editingId = null;
 }
 function quickStart() { resetForNew(); go('dims'); startDimensionEntry(0); }
 function quickTemplate(tpl) { resetForNew(); state.params.template = tpl; go('dims'); startDimensionEntry(0); }
 
-/* ==================== 几何计算 ==================== */
 function roundedRect(w, h, r, seg = 6) {
   const rr = Math.max(0, Math.min(r, w/2, h/2));
   const pts = [[rr, 0], [w-rr, 0]];
-  const corners = [
-    [w-rr, rr, -Math.PI/2, 0],
-    [w-rr, h-rr, 0, Math.PI/2],
-    [rr, h-rr, Math.PI/2, Math.PI],
-    [rr, rr, Math.PI, Math.PI*1.5],
-  ];
+  const corners = [[w-rr, rr, -Math.PI/2, 0], [w-rr, h-rr, 0, Math.PI/2], [rr, h-rr, Math.PI/2, Math.PI], [rr, rr, Math.PI, Math.PI*1.5]];
   for (const [cx, cy, a0, a1] of corners) {
-    for (let i = 1; i <= seg; i++) {
-      const a = a0 + (a1 - a0) * (i/seg);
-      pts.push([cx + Math.cos(a)*rr, cy + Math.sin(a)*rr]);
-    }
+    for (let i = 1; i <= seg; i++) { const a = a0 + (a1 - a0) * (i/seg); pts.push([cx + Math.cos(a)*rr, cy + Math.sin(a)*rr]); }
   }
   return pts;
 }
 function circle(cx, cy, r, seg = 20) {
-  const pts = [];
-  for (let i = 0; i < seg; i++) {
-    const a = i/seg * Math.PI*2;
-    pts.push([cx + Math.cos(a)*r, cy + Math.sin(a)*r]);
-  }
-  return pts;
+  const pts = []; for (let i = 0; i < seg; i++) { const a = i/seg * Math.PI*2; pts.push([cx + Math.cos(a)*r, cy + Math.sin(a)*r]); } return pts;
 }
 function polygonArea(pts) {
-  let a = 0;
-  for (let i = 0; i < pts.length; i++) {
-    const [x1,y1] = pts[i], [x2,y2] = pts[(i+1)%pts.length];
-    a += x1*y2 - x2*y1;
-  }
-  return Math.abs(a)/2;
+  let a = 0; for (let i = 0; i < pts.length; i++) { const [x1,y1] = pts[i], [x2,y2] = pts[(i+1)%pts.length]; a += x1*y2 - x2*y1; } return Math.abs(a)/2;
 }
 function bbox(pts) {
   let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
-  for (const [x,y] of pts) {
-    if(x<minX)minX=x; if(y<minY)minY=y;
-    if(x>maxX)maxX=x; if(y>maxY)maxY=y;
-  }
+  for (const [x,y] of pts) { if(x<minX)minX=x; if(y<minY)minY=y; if(x>maxX)maxX=x; if(y>maxY)maxY=y; }
   return { minX, minY, maxX, maxY, w: maxX-minX, h: maxY-minY };
 }
-function buildNotches(w, h) {
-  return state.notches.map(n => ({
-    x: Math.max(0, Math.min(w, n.dLeft)),
-    y: Math.max(0, Math.min(h, n.dTop)),
-    size: n.size,
-    shape: n.shape || 'v'
-  }));
-}
+function buildNotches(w, h) { return state.notches.map(n => ({ x: Math.max(0, Math.min(w, n.dLeft)), y: Math.max(0, Math.min(h, n.dTop)), size: n.size, shape: n.shape || 'v' })); }
 function getHoles(w, h, s) {
   const holes = [];
   if (state.features.vent) {
-    const d = 40;
-    const pos = state.featurePos.vent;
-    let ys = [];
-    if (pos === 'center') ys = [h*0.35, h*0.65];
-    if (pos === 'top') ys = [h*0.2, h*0.4];
-    if (pos === 'bottom') ys = [h*0.6, h*0.8];
+    const d = 40, pos = state.featurePos.vent; let ys = [];
+    if (pos === 'center') ys = [h*0.35, h*0.65]; if (pos === 'top') ys = [h*0.2, h*0.4]; if (pos === 'bottom') ys = [h*0.6, h*0.8];
     ys.forEach(y => holes.push(circle(w/2, y, d/2)));
   }
   if (state.features.tie_hole) {
-    const off = s + 15;
-    const pos = state.featurePos.tie_hole;
-    let pts = [];
+    const off = s + 15, pos = state.featurePos.tie_hole; let pts = [];
     if (pos === 'corner') pts = [[off,off],[w-off,off],[off,h-off],[w-off,h-off]];
     if (pos === 'edge') pts = [[w/2,off],[w/2,h-off],[off,h/2],[w-off,h/2]];
     pts.forEach(([x,y]) => holes.push(circle(x, y, 4)));
@@ -1238,37 +556,27 @@ function getHoles(w, h, s) {
   return holes;
 }
 function markerSVG(cx, cy, sizePx, shape = 'v', stroke = '#00E5FF') {
-  const s = Math.max(sizePx, 4);
-  const h = s / 2;
+  const s = Math.max(sizePx, 4), h = s / 2;
   if (shape === 'square') return `<rect x="${cx-h}" y="${cy-h}" width="${s}" height="${s}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>`;
-  if (shape === 'triangle') {
-    const R = s / Math.sqrt(3);
-    const pts = [`${cx},${cy - R}`, `${cx + s/2},${cy + R/2}`, `${cx - s/2},${cy + R/2}`].join(' ');
-    return `<polygon points="${pts}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>`;
-  }
+  if (shape === 'triangle') { const R = s / Math.sqrt(3); const pts = [`${cx},${cy - R}`, `${cx + s/2},${cy + R/2}`, `${cx - s/2},${cy + R/2}`].join(' '); return `<polygon points="${pts}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>`; }
   return `<polyline points="${cx+h},${cy-h} ${cx-h},${cy} ${cx+h},${cy+h}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
 }
 
 function generatePieces() {
-  const p = state.params;
-  const f = state.features;
-  const s = p.seam;
+  const p = state.params, f = state.features, s = p.seam;
   if (p.template === 'seat_pad_cover') {
     const w = p.width + 2*s, h = p.depth + 2*s, r = p.cornerRadius + s;
-    const notches = buildNotches(w, h);
-    const holes = getHoles(w, h, s);
+    const notches = buildNotches(w, h), holes = getHoles(w, h, s);
     const top = { id:'A1', name:'顶片', quantity:1, outline: roundedRect(w,h,r), holes: holes.map(c => c.slice()), notches: notches.map(n => ({...n})), grainLocked:true };
     const bottom = { id:'A2', name:'底片', quantity:1, outline: roundedRect(w,h,r), holes: [], notches: notches.map(n => ({...n})), grainLocked:true };
     if (f.zipper) {
-      const pos = state.featurePos.zipper;
-      const len = Math.min(500, w * 0.7, h * 0.7);
+      const pos = state.featurePos.zipper, len = Math.min(500, w * 0.7, h * 0.7);
       let cx1, cy1, cx2, cy2;
       if (pos === 'top') { cx1 = w/2 - len/2; cy1 = 0; cx2 = w/2 + len/2; cy2 = 0; }
       else if (pos === 'left') { cx1 = 0; cy1 = h/2 - len/2; cx2 = 0; cy2 = h/2 + len/2; }
       else if (pos === 'right') { cx1 = w; cy1 = h/2 - len/2; cx2 = w; cy2 = h/2 + len/2; }
       else { cx1 = w/2 - len/2; cy1 = h; cx2 = w/2 + len/2; cy2 = h; }
-      top.notches.push({ x: cx1, y: cy1, size: 8, shape: 'v' });
-      top.notches.push({ x: cx2, y: cy2, size: 8, shape: 'v' });
+      top.notches.push({ x: cx1, y: cy1, size: 8, shape: 'v' }, { x: cx2, y: cy2, size: 8, shape: 'v' });
     }
     return [top, bottom];
   }
@@ -1280,1125 +588,472 @@ function generatePieces() {
       { id:'A2', name:'后面片', quantity:1, outline: roundedRect(w,h,r), holes:[], notches: notches.map(n => ({...n})), grainLocked:true },
     ];
   }
-  const ribs = p.ribCount || 8;
-  const arcLen = Math.PI * p.width;
-  const baseHalf = arcLen / ribs / 2 + s;
-  const height = p.depth + 2*s;
-  const topHalf = s + 10;
-  const pts = [[-baseHalf,0],[baseHalf,0]];
-  const seg = 12;
-  for (let i = 1; i <= seg; i++) {
-    const tt = i/seg;
-    const x = baseHalf - 2*baseHalf*tt;
-    const y = Math.sin(tt*Math.PI) * 15;
-    pts.push([x,y]);
-  }
-  pts.push([-topHalf, height]);
-  pts.push([topHalf, height]);
+  const ribs = p.ribCount || 8, arcLen = Math.PI * p.width, baseHalf = arcLen / ribs / 2 + s, height = p.depth + 2*s, topHalf = s + 10;
+  const pts = [[-baseHalf,0],[baseHalf,0]], seg = 12;
+  for (let i = 1; i <= seg; i++) { const tt = i/seg; pts.push([baseHalf - 2*baseHalf*tt, Math.sin(tt*Math.PI) * 15]); }
+  pts.push([-topHalf, height], [topHalf, height]);
   return [{ id:'A1', name:'伞片', quantity:ribs, outline:pts, holes:[], notches:[], grainLocked:true }];
 }
-
 function generatePiecesFromItem(item) {
   const save = { params: state.params, features: state.features, featurePos: state.featurePos, notches: state.notches };
-  state.params = item.params;
-  state.features = item.features;
-  state.featurePos = item.featurePos;
-  state.notches = item.notches;
+  state.params = item.params; state.features = item.features; state.featurePos = item.featurePos; state.notches = item.notches;
   const pieces = generatePieces();
-  state.params = save.params; state.features = save.features;
-  state.featurePos = save.featurePos; state.notches = save.notches;
+  state.params = save.params; state.features = save.features; state.featurePos = save.featurePos; state.notches = save.notches;
   return pieces;
 }
 
-/* ==================== 特征页 ==================== */
 function renderFeatures() {
-  const { w, h } = currentPieceSize();
-  const list = document.getElementById('features-list');
+  const { w, h } = currentPieceSize(), list = document.getElementById('features-list');
   const notchRows = state.notches.map((n, i) => {
-    const eps = 2;
-    let pos = '内部';
-    if (n.dTop < eps) pos = '上边';
-    else if (n.dTop > h - eps) pos = '下边';
-    else if (n.dLeft < eps) pos = '左边';
-    else if (n.dLeft > w - eps) pos = '右边';
-    const sel = i === state.selectedNotch ? 'selected' : '';
-    
-    let shapeName = '剪口';
-    if (n.shape === 'square') shapeName = '方形';
-    if (n.shape === 'triangle') shapeName = '三角';
-
-    return `<div class="notch-row ${sel}" data-idx="${i}">
-      <span class="n-id">${i+1}</span>
-      <span class="n-pos" style="color:var(--text);flex:0.5;text-align:left">${shapeName}</span>
-      <span class="n-pos">${pos}</span>
-      <span class="n-size">${n.size}mm</span>
-      <span class="n-del" data-del="${i}">×</span>
+    const eps = 2; let pos = '内部';
+    if (n.dTop < eps) pos = '上边'; else if (n.dTop > h - eps) pos = '下边'; else if (n.dLeft < eps) pos = '左边'; else if (n.dLeft > w - eps) pos = '右边';
+    let shapeName = '剪口'; if (n.shape === 'square') shapeName = '方形'; if (n.shape === 'triangle') shapeName = '三角';
+    return `<div class="notch-row ${i === state.selectedNotch ? 'selected' : ''}" data-idx="${i}">
+      <span class="n-id">${i+1}</span><span class="n-pos" style="color:var(--text);flex:0.5;text-align:left">${shapeName}</span>
+      <span class="n-pos">${pos}</span><span class="n-size">${n.size}mm</span><span class="n-del" data-del="${i}">×</span>
     </div>`;
   }).join('');
-  
-  // 放大调节按钮字体和高度
   const glowBtnStyle = "height:56px;font-size:20px;flex:1;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.4);color:#0088AA;font-weight:800;border-radius:12px; transition: transform 0.1s;";
-  
   list.innerHTML = `
     <div class="feature-group">
       <h3>裁床标记 · 进 PLT
         <div style="display:flex; gap:6px;">
-          <span class="add-btn" onclick="addNotch('v')">剪口</span>
-          <span class="add-btn" onclick="addNotch('square')">方形</span>
-          <span class="add-btn" onclick="addNotch('triangle')">三角</span>
+          <span class="add-btn" onclick="addNotch('v')">剪口</span><span class="add-btn" onclick="addNotch('square')">方形</span><span class="add-btn" onclick="addNotch('triangle')">三角</span>
         </div>
       </h3>
-      ${state.notches.length ? `<div class="notch-list">${notchRows}</div>` : '<div style="font-size:18px;color:var(--text-dim);padding:16px 4px;text-align:center;">暂无标记，点击右上角添加</div>'}
-      
-      ${state.notches.length ? `
-      <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px; display:flex; flex-wrap:wrap; gap:10px;">
+      ${state.notches.length ? `<div class="notch-list">${notchRows}</div>` : '<div style="font-size:18px;color:var(--text-dim);padding:16px 4px;text-align:center;">暂无标记</div>'}
+      ${state.notches.length ? `<div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px; display:flex; flex-wrap:wrap; gap:10px;">
         <button style="${glowBtnStyle}" onclick="editNotchField('size','大小')">大小: ${state.notches[state.selectedNotch]?.size || 0}mm</button>
         <button style="${glowBtnStyle}" onclick="editNotchField('dLeft','距左')">距左: ${Math.round(state.notches[state.selectedNotch]?.dLeft || 0)}mm</button>
         <button style="${glowBtnStyle}" onclick="editNotchField('dTop','距上')">距上: ${Math.round(state.notches[state.selectedNotch]?.dTop || 0)}mm</button>
         <button style="${glowBtnStyle}" onclick="editNotchField('dRight','距右')">距右: ${Math.round(w - (state.notches[state.selectedNotch]?.dLeft || 0))}mm</button>
         <button style="${glowBtnStyle}" onclick="editNotchField('dBottom','距下')">距下: ${Math.round(h - (state.notches[state.selectedNotch]?.dTop || 0))}mm</button>
       </div>` : ''}
-
-      <div class="feature-item ${state.features.zipper ? '' : 'off'}" data-type="zipper" style="margin-top:20px;">
-        <span class="feat-name">拉链（仅标记）</span>
-        <span class="feat-pos">${POS_LABEL.zipper[state.featurePos.zipper]}</span>
-        <span class="switch ${state.features.zipper ? 'on' : ''}"></span>
-      </div>
-      <div class="feature-item ${state.features.vent ? '' : 'off'}" data-type="vent">
-        <span class="feat-name">通风口</span>
-        <span class="feat-pos">${POS_LABEL.vent[state.featurePos.vent]}</span>
-        <span class="switch ${state.features.vent ? 'on' : ''}"></span>
-      </div>
+      <div class="feature-item ${state.features.zipper ? '' : 'off'}" data-type="zipper" style="margin-top:20px;"><span class="feat-name">拉链（仅标记）</span><span class="feat-pos">${POS_LABEL.zipper[state.featurePos.zipper]}</span><span class="switch ${state.features.zipper ? 'on' : ''}"></span></div>
+      <div class="feature-item ${state.features.vent ? '' : 'off'}" data-type="vent"><span class="feat-name">通风口</span><span class="feat-pos">${POS_LABEL.vent[state.featurePos.vent]}</span><span class="switch ${state.features.vent ? 'on' : ''}"></span></div>
     </div>
-    <div class="feature-group">
-      <h3>车缝参考 · 不进 PLT</h3>
-      <div class="feature-item ${state.features.double_stitch ? '' : 'off'}" data-type="double_stitch">
-        <span class="feat-name">双线</span>
-        <span class="switch ${state.features.double_stitch ? 'on' : ''}"></span>
-      </div>
-      <div class="feature-item ${state.features.fabric ? '' : 'off'}" data-type="fabric">
-        <span class="feat-name">防水布</span>
-        <span class="switch ${state.features.fabric ? 'on' : ''}"></span>
-      </div>
-    </div>
-  `;
-  
-  list.querySelectorAll('.notch-row').forEach(el => {
-    el.addEventListener('click', (e) => {
-      if (e.target.closest('.n-del')) return;
-      state.selectedNotch = parseInt(el.dataset.idx);
-      renderFeatures();
-    });
-  });
-  list.querySelectorAll('.n-del').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const idx = parseInt(el.dataset.del);
-      state.notches.splice(idx, 1);
-      state.selectedNotch = Math.max(0, state.notches.length - 1);
-      renderFeatures();
-    });
-  });
-  list.querySelectorAll('.feature-item').forEach(el => {
-    el.addEventListener('click', () => {
-      state.features[el.dataset.type] = !state.features[el.dataset.type];
-      renderFeatures();
-    });
-  });
-  
+    <div class="feature-group"><h3>车缝参考 · 不进 PLT</h3>
+      <div class="feature-item ${state.features.double_stitch ? '' : 'off'}" data-type="double_stitch"><span class="feat-name">双线</span><span class="switch ${state.features.double_stitch ? 'on' : ''}"></span></div>
+      <div class="feature-item ${state.features.fabric ? '' : 'off'}" data-type="fabric"><span class="feat-name">防水布</span><span class="switch ${state.features.fabric ? 'on' : ''}"></span></div>
+    </div>`;
+  list.querySelectorAll('.notch-row').forEach(el => { el.addEventListener('click', (e) => { if (e.target.closest('.n-del')) return; state.selectedNotch = parseInt(el.dataset.idx); renderFeatures(); }); });
+  list.querySelectorAll('.n-del').forEach(el => { el.addEventListener('click', (e) => { e.stopPropagation(); state.notches.splice(parseInt(el.dataset.del), 1); state.selectedNotch = Math.max(0, state.notches.length - 1); renderFeatures(); }); });
+  list.querySelectorAll('.feature-item').forEach(el => { el.addEventListener('click', () => { state.features[el.dataset.type] = !state.features[el.dataset.type]; renderFeatures(); }); });
   renderFeaturePreview();
 }
-
 function editNotchField(fieldKey, label) {
-  const n = state.notches[state.selectedNotch];
-  if (!n) return;
+  const n = state.notches[state.selectedNotch]; if (!n) return;
   const { w, h } = currentPieceSize();
-  
-  let curVal = 0;
-  if (fieldKey === 'size') curVal = n.size;
-  if (fieldKey === 'dLeft') curVal = n.dLeft;
-  if (fieldKey === 'dTop') curVal = n.dTop;
-  if (fieldKey === 'dRight') curVal = w - n.dLeft;
-  if (fieldKey === 'dBottom') curVal = h - n.dTop;
-
-  // 强制空白
   openNumpad(label, '', (v) => {
-    if (fieldKey === 'size') n.size = Math.max(1, v);
-    if (fieldKey === 'dLeft') n.dLeft = v;
-    if (fieldKey === 'dTop') n.dTop = v;
-    if (fieldKey === 'dRight') n.dLeft = w - v;
-    if (fieldKey === 'dBottom') n.dTop = h - v;
-    
-    n.dLeft = Math.max(0, Math.min(w, n.dLeft));
-    n.dTop = Math.max(0, Math.min(h, n.dTop));
-    
-    renderFeatures();
+    if (fieldKey === 'size') n.size = Math.max(1, v); if (fieldKey === 'dLeft') n.dLeft = v; if (fieldKey === 'dTop') n.dTop = v;
+    if (fieldKey === 'dRight') n.dLeft = w - v; if (fieldKey === 'dBottom') n.dTop = h - v;
+    n.dLeft = Math.max(0, Math.min(w, n.dLeft)); n.dTop = Math.max(0, Math.min(h, n.dTop)); renderFeatures();
   });
 }
-
 function addNotch(shape = 'v') {
-  const { w, h } = currentPieceSize();
-  let size = shape === 'v' ? 5 : 10;
-  // 新建剪口默认放置在右侧正中间
+  const { w, h } = currentPieceSize(); let size = shape === 'v' ? 5 : 10;
   state.notches.push({ dLeft: w, dTop: h / 2, size: size, shape: shape });
-  state.selectedNotch = state.notches.length - 1;
-  renderFeatures();
+  state.selectedNotch = state.notches.length - 1; renderFeatures();
 }
 function renderFeaturePreview() {
-  const c = document.getElementById('features-canvas');
-  if (!c) return;
-  const p = state.params, s = p.seam;
-  const w = p.width + 2*s, h = p.depth + 2*s, r = p.cornerRadius + s;
-  const outline = roundedRect(w, h, r);
-  const notches = buildNotches(w, h);
-  const holes = getHoles(w, h, s);
-  const W = 360, H = 200, pad = 16;
-  const scale = Math.min((W - pad*2) / w, (H - pad*2) / h);
+  const c = document.getElementById('features-canvas'); if (!c) return;
+  const p = state.params, s = p.seam, w = p.width + 2*s, h = p.depth + 2*s, r = p.cornerRadius + s;
+  const outline = roundedRect(w, h, r), notches = buildNotches(w, h), holes = getHoles(w, h, s);
+  const W = 360, H = 200, pad = 16, scale = Math.min((W - pad*2) / w, (H - pad*2) / h);
   const ox = (W - w*scale) / 2, oy = (H - h*scale) / 2;
   let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
-  
   const d = 'M ' + outline.map(([x,y]) => `${ox+x*scale} ${oy+y*scale}`).join(' L ') + ' Z';
   svg += `<path d="${d}" fill="none" stroke="var(--glow-blue)" stroke-width="1.5"/>`;
-  
-  holes.forEach(hole => {
-    const hd = 'M ' + hole.map(([x,y]) => `${ox+x*scale} ${oy+y*scale}`).join(' L ') + ' Z';
-    svg += `<path d="${hd}" fill="none" stroke="var(--glow-blue)" stroke-width="1"/>`;
-  });
-  
+  holes.forEach(hole => { const hd = 'M ' + hole.map(([x,y]) => `${ox+x*scale} ${oy+y*scale}`).join(' L ') + ' Z'; svg += `<path d="${hd}" fill="none" stroke="var(--glow-blue)" stroke-width="1"/>`; });
   notches.forEach((n, i) => {
-    const cx = ox + n.x * scale, cy = oy + n.y * scale;
-    const sz = n.size * scale;
-    
+    const cx = ox + n.x * scale, cy = oy + n.y * scale, sz = n.size * scale;
     let color = 'rgba(0, 229, 255, 0.4)';
-    if (i === state.selectedNotch) {
-      if (n.shape === 'square') color = 'var(--glow-green)';
-      else if (n.shape === 'triangle') color = 'var(--glow-orange)';
-      else color = 'var(--glow-yellow)';
-    }
-    
+    if (i === state.selectedNotch) { if (n.shape === 'square') color = 'var(--glow-green)'; else if (n.shape === 'triangle') color = 'var(--glow-orange)'; else color = 'var(--glow-yellow)'; }
     svg += markerSVG(cx, cy, sz, n.shape, color);
   });
-  
-  svg += '</svg>';
-  c.innerHTML = svg;
+  svg += '</svg>'; c.innerHTML = svg;
 }
-function finishFeatures() {
-  state.pieces = generatePieces();
-  triggerSuccess(() => go('preview'));
-}
+function finishFeatures() { state.pieces = generatePieces(); triggerSuccess(() => go('preview')); }
 
-/* ==================== 预览页 ==================== */
 function renderPreview() {
-  const pieces = state.pieces.length ? state.pieces : generatePieces();
-  state.pieces = pieces;
-  const c = document.getElementById('preview-canvas');
-  if (!pieces.length) { c.innerHTML = '<div style="color:var(--glow-blue);font-size:20px">没有裁片</div>'; return; }
-  let allPts = [];
-  pieces.forEach(p => { allPts = allPts.concat(p.outline); });
-  const bb = bbox(allPts);
-  const pad = 16, W = 360, H = 420;
+  const pieces = state.pieces.length ? state.pieces : generatePieces(); state.pieces = pieces;
+  const c = document.getElementById('preview-canvas'); if (!pieces.length) { c.innerHTML = '<div style="color:var(--glow-blue);font-size:20px">没有裁片</div>'; return; }
+  let allPts = []; pieces.forEach(p => { allPts = allPts.concat(p.outline); });
+  const bb = bbox(allPts), pad = 16, W = 360, H = 420;
   let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
   pieces.forEach((piece, idx) => {
-    const cols = pieces.length === 1 ? 1 : 2;
-    const rows = Math.ceil(pieces.length / cols);
-    const cellW = (W - pad*2) / cols;
-    const cellH = (H - pad*2) / rows;
+    const cols = pieces.length === 1 ? 1 : 2, rows = Math.ceil(pieces.length / cols);
+    const cellW = (W - pad*2) / cols, cellH = (H - pad*2) / rows;
     const cellScale = Math.min((cellW - 24)/bb.w, (cellH - 40)/bb.h);
     const col = idx % cols, row = Math.floor(idx / cols);
     const offX = pad + col * cellW + (cellW - bb.w * cellScale) / 2 - bb.minX * cellScale;
     const offY = pad + row * cellH + (cellH - bb.h * cellScale) / 2 - bb.minY * cellScale + 12;
     svg += `<g transform="translate(${offX},${offY}) scale(${cellScale})">`;
-    
     const d = 'M ' + piece.outline.map(([x,y]) => `${x} ${y}`).join(' L ') + ' Z';
     svg += `<path d="${d}" fill="none" stroke="var(--glow-blue)" stroke-width="${1.5/cellScale}"/>`;
-    
-    piece.holes.forEach(hole => {
-      const hd = 'M ' + hole.map(([x,y]) => `${x} ${y}`).join(' L ') + ' Z';
-      svg += `<path d="${hd}" fill="none" stroke="var(--glow-blue)" stroke-width="${1/cellScale}"/>`;
-    });
-    
-    piece.notches.forEach(n => {
-      svg += markerSVG(n.x, n.y, n.size, n.shape, 'var(--glow-blue)');
-    });
-    
+    piece.holes.forEach(hole => { const hd = 'M ' + hole.map(([x,y]) => `${x} ${y}`).join(' L ') + ' Z'; svg += `<path d="${hd}" fill="none" stroke="var(--glow-blue)" stroke-width="${1/cellScale}"/>`; });
+    piece.notches.forEach(n => { svg += markerSVG(n.x, n.y, n.size, n.shape, 'var(--glow-blue)'); });
     svg += `</g>`;
-    
-    const labelX = pad + col * cellW + 8;
-    const labelY = pad + row * cellH + 20;
+    const labelX = pad + col * cellW + 8, labelY = pad + row * cellH + 20;
     svg += `<text x="${labelX}" y="${labelY}" fill="var(--glow-blue)" font-size="16" font-weight="800">${piece.id} ${piece.name}</text>`;
   });
-  svg += '</svg>';
-  c.innerHTML = svg;
+  svg += '</svg>'; c.innerHTML = svg;
   document.getElementById('preview-step').textContent = `${pieces.length} 种裁片`;
   document.getElementById('qty-val').textContent = state.quantity;
 }
-function changeQty(delta) {
-  state.quantity = Math.max(1, Math.min(999, state.quantity + delta));
-  renderPreview();
-}
-
+function changeQty(delta) { state.quantity = Math.max(1, Math.min(999, state.quantity + delta)); renderPreview(); }
 function _saveCurrentToLibrary() {
   const lib = loadLibrary();
-  lib.unshift({
-    id: Date.now(), 
-    template: state.params.template,
-    params: { ...state.params },
-    features: { ...state.features },
-    featurePos: { ...state.featurePos },
-    notches: state.notches.map(n => ({...n})),
-    quantity: state.quantity,
-    createdAt: new Date().toLocaleString('zh-CN'),
-  });
+  lib.unshift({ id: Date.now(), template: state.params.template, params: { ...state.params }, features: { ...state.features }, featurePos: { ...state.featurePos }, notches: state.notches.map(n => ({...n})), quantity: state.quantity, createdAt: new Date().toLocaleString('zh-CN') });
   saveLibraryData(lib);
 }
-function saveAndNext() {
-  _saveCurrentToLibrary();
-  triggerSuccess(() => {
-    resetForNew();
-    navStack = ['home'];
-    go('home', false);
-  });
-}
+function saveAndNext() { _saveCurrentToLibrary(); triggerSuccess(() => { resetForNew(); navStack = ['home']; go('home', false); }); }
 function saveAndExportPLT() {
-  _saveCurrentToLibrary();
-  state.pieces = generatePieces();
+  _saveCurrentToLibrary(); state.pieces = generatePieces();
   const expanded = state.pieces.map(p => ({ ...p, quantity: p.quantity * state.quantity }));
   const result = shelfNest(expanded, state.fabricWidth, state.fabricLength, state.spacing);
   if (result.overflow.length > 0) {
     showToast(`已存库 ✓ 但有 ${result.overflow.length} 个裁片放不下，请去库里加大布幅`, true);
-    setTimeout(() => { resetForNew(); navStack = ['home']; go('home', false); }, 1400);
-    return;
+    setTimeout(() => { resetForNew(); navStack = ['home']; go('home', false); }, 1400); return;
   }
   const plt = generatePLTFromPositions(result.placements);
   const stamp = new Date().toISOString().slice(0,10).replace(/-/g,'');
   downloadFile(plt, `裁床师傅_${stamp}.plt`, 'text/plain');
-  triggerSuccess(() => {
-    resetForNew();
-    navStack = ['home'];
-    go('home', false);
-  });
+  triggerSuccess(() => { resetForNew(); navStack = ['home']; go('home', false); });
 }
 
-/* ==================== 款式库 ==================== */
-function loadLibrary() {
-  try { return JSON.parse(localStorage.getItem('vc_library') || '[]'); } catch { return []; }
-}
+function loadLibrary() { try { return JSON.parse(localStorage.getItem('vc_library') || '[]'); } catch { return []; } }
 function saveLibraryData(list) { localStorage.setItem('vc_library', JSON.stringify(list)); }
-
 function renderLibrary() {
-  const lib = loadLibrary();
-  const el = document.getElementById('library-list');
+  const lib = loadLibrary(), el = document.getElementById('library-list');
   document.getElementById('lib-count').textContent = `${lib.length} 个`;
   document.getElementById('h-library').textContent = state.layoutItems.length ? `已选 ${state.layoutItems.length} 个` : '点击卡片选择款式';
-  if (!lib.length) {
-    el.innerHTML = '<div class="lib-empty">库是空的<br>画完一个款式后保存到库</div>';
-    updateLibButton();
-    return;
-  }
+  if (!lib.length) { el.innerHTML = '<div class="lib-empty">库是空的<br>画完一个款式后保存到库</div>'; updateLibButton(); return; }
   el.innerHTML = lib.map((item, i) => {
     const selected = state.layoutItems.includes(item.id);
-    return `
-      <div class="lib-card ${selected ? 'selected' : ''}" style="animation-delay:${i*0.04}s" onclick="toggleLibSelect(${item.id})">
-        <div class="lib-check">${selected ? '✓' : ''}</div>
-        <div class="lib-thumb">${renderLibThumb(item)}</div>
-        <div class="lib-info">
-          <div class="title">${templateName(item.template)} · ${item.params.width}×${item.params.depth}</div>
-          <div class="meta">${item.quantity} 件 · 标记${item.notches ? item.notches.length : 0}个</div>
-        </div>
-        <div class="lib-actions">
-          <div class="lib-act-btn edit" onclick="editLibItem(event, ${item.id})" title="编辑并生成副本">✎</div>
-          <div class="lib-act-btn del" onclick="deleteLibItem(event, ${item.id})" title="删除">×</div>
-        </div>
+    return `<div class="lib-card ${selected ? 'selected' : ''}" style="animation-delay:${i*0.04}s" onclick="toggleLibSelect(${item.id})">
+        <div class="lib-check">${selected ? '✓' : ''}</div><div class="lib-thumb">${renderLibThumb(item)}</div>
+        <div class="lib-info"><div class="title">${templateName(item.template)} · ${item.params.width}×${item.params.depth}</div><div class="meta">${item.quantity} 件 · 标记${item.notches ? item.notches.length : 0}个</div></div>
+        <div class="lib-actions"><div class="lib-act-btn edit" onclick="editLibItem(event, ${item.id})" title="编辑">✎</div><div class="lib-act-btn del" onclick="deleteLibItem(event, ${item.id})" title="删除">×</div></div>
       </div>`;
   }).join('');
   updateLibButton();
 }
 function renderLibThumb(item) {
-  const p = item.params, s = p.seam;
-  const w = p.width + 2*s, h = p.depth + 2*s;
-  const W = 48, H = 48, pad = 4;
-  const scale = Math.min((W - pad*2)/w, (H - pad*2)/h);
-  const ox = (W - w*scale)/2, oy = (H - h*scale)/2;
-  const r = Math.min(p.cornerRadius * scale, 3);
-  return `<svg viewBox="0 0 ${W} ${H}" width="56" height="56">
-    <rect x="${ox}" y="${oy}" width="${w*scale}" height="${h*scale}"
-      fill="var(--surface-dim)" stroke="var(--glow-blue)" stroke-width="2" rx="${r}"/>
-  </svg>`;
+  const p = item.params, s = p.seam, w = p.width + 2*s, h = p.depth + 2*s, W = 48, H = 48, pad = 4;
+  const scale = Math.min((W - pad*2)/w, (H - pad*2)/h), ox = (W - w*scale)/2, oy = (H - h*scale)/2, r = Math.min(p.cornerRadius * scale, 3);
+  return `<svg viewBox="0 0 ${W} ${H}" width="56" height="56"><rect x="${ox}" y="${oy}" width="${w*scale}" height="${h*scale}" fill="var(--surface-dim)" stroke="var(--glow-blue)" stroke-width="2" rx="${r}"/></svg>`;
 }
-function toggleLibSelect(id) {
-  const idx = state.layoutItems.indexOf(id);
-  if (idx >= 0) state.layoutItems.splice(idx, 1);
-  else state.layoutItems.push(id);
-  renderLibrary();
-}
+function toggleLibSelect(id) { const idx = state.layoutItems.indexOf(id); if (idx >= 0) state.layoutItems.splice(idx, 1); else state.layoutItems.push(id); renderLibrary(); }
 function editLibItem(e, id) {
-  e.stopPropagation();
-  const lib = loadLibrary();
-  const item = lib.find(x => x.id === id);
-  if (!item) return;
-  resetForNew();
-  state.params = JSON.parse(JSON.stringify(item.params));
-  state.features = JSON.parse(JSON.stringify(item.features));
-  state.featurePos = JSON.parse(JSON.stringify(item.featurePos));
-  state.notches = JSON.parse(JSON.stringify(item.notches));
-  state.quantity = item.quantity;
-  state.dimIndex = 0;
-  state._editingId = id; 
-  showToast('已载入副本，修改后保存将生成新款式');
-  navStack = ['home', 'dims'];
-  go('dims', false); 
-  startDimensionEntry(0);
+  e.stopPropagation(); const lib = loadLibrary(), item = lib.find(x => x.id === id); if (!item) return;
+  resetForNew(); state.params = JSON.parse(JSON.stringify(item.params)); state.features = JSON.parse(JSON.stringify(item.features)); state.featurePos = JSON.parse(JSON.stringify(item.featurePos)); state.notches = JSON.parse(JSON.stringify(item.notches));
+  state.quantity = item.quantity; state.dimIndex = 0; state._editingId = id; showToast('已载入副本');
+  navStack = ['home', 'dims']; go('dims', false); startDimensionEntry(0);
 }
-function deleteLibItem(e, id) {
-  e.stopPropagation();
-  saveLibraryData(loadLibrary().filter(x => x.id !== id));
-  state.layoutItems = state.layoutItems.filter(x => x !== id);
-  renderLibrary();
-  showToast('已删除');
-}
-function updateLibButton() {
-  const btn = document.getElementById('lib-layout-btn');
-  const cnt = state.layoutItems.length;
-  if (btn) {
-    btn.textContent = cnt ? `排版选中 ${cnt} 个` : '排版选中';
-    btn.disabled = cnt === 0;
-  }
-}
-function clearLibrary() {
-  if (!confirm('确定清空整个款式库？')) return;
-  saveLibraryData([]);
-  state.layoutItems = [];
-  renderLibrary();
-}
+function deleteLibItem(e, id) { e.stopPropagation(); saveLibraryData(loadLibrary().filter(x => x.id !== id)); state.layoutItems = state.layoutItems.filter(x => x !== id); renderLibrary(); showToast('已删除'); }
+function updateLibButton() { const btn = document.getElementById('lib-layout-btn'), cnt = state.layoutItems.length; if (btn) { btn.textContent = cnt ? `排版选中 ${cnt} 个` : '排版选中'; btn.disabled = cnt === 0; } }
 
-/* ==================== 撤销与重做逻辑 ==================== */
 function pushHistory(snapshotStr) {
   const str = snapshotStr || JSON.stringify({ pieces: state.layoutPieces, qty: state.layoutQty });
-  state.undoStack.push(str);
-  if (state.undoStack.length > 30) state.undoStack.shift();
-  state.redoStack = [];
-  updateUndoRedoButtons();
+  state.undoStack.push(str); if (state.undoStack.length > 30) state.undoStack.shift();
+  state.redoStack = []; updateUndoRedoButtons();
 }
-
 function undoLayout() {
   if (state.undoStack.length === 0) return;
-  state.redoStack.push(JSON.stringify({
-    pieces: state.layoutPieces,
-    qty: state.layoutQty
-  }));
-  const data = JSON.parse(state.undoStack.pop());
-  state.layoutPieces = data.pieces;
-  state.layoutQty = data.qty;
-  
-  renderLayout();
-  renderPieceList();
-  updateUndoRedoButtons();
-  showToast('已撤销');
+  state.redoStack.push(JSON.stringify({ pieces: state.layoutPieces, qty: state.layoutQty }));
+  const data = JSON.parse(state.undoStack.pop()); state.layoutPieces = data.pieces; state.layoutQty = data.qty;
+  renderLayout(); renderPieceList(); updateUndoRedoButtons(); showToast('已撤销');
 }
-
 function redoLayout() {
   if (state.redoStack.length === 0) return;
-  state.undoStack.push(JSON.stringify({
-    pieces: state.layoutPieces,
-    qty: state.layoutQty
-  }));
-  const data = JSON.parse(state.redoStack.pop());
-  state.layoutPieces = data.pieces;
-  state.layoutQty = data.qty;
-  
-  renderLayout();
-  renderPieceList();
-  updateUndoRedoButtons();
-  showToast('已恢复');
+  state.undoStack.push(JSON.stringify({ pieces: state.layoutPieces, qty: state.layoutQty }));
+  const data = JSON.parse(state.redoStack.pop()); state.layoutPieces = data.pieces; state.layoutQty = data.qty;
+  renderLayout(); renderPieceList(); updateUndoRedoButtons(); showToast('已恢复');
 }
-
 function updateUndoRedoButtons() {
-  const btnU = document.getElementById('btn-undo');
-  const btnR = document.getElementById('btn-redo');
-  if (btnU) btnU.disabled = state.undoStack.length === 0;
-  if (btnR) btnR.disabled = state.redoStack.length === 0;
+  const btnU = document.getElementById('btn-undo'), btnR = document.getElementById('btn-redo');
+  if (btnU) btnU.disabled = state.undoStack.length === 0; if (btnR) btnR.disabled = state.redoStack.length === 0;
 }
 
-/* ==================== 排版 ==================== */
 function enterLayout() {
-  state.view = { scale: 1, tx: 0, ty: 0 }; 
-  state.undoStack = [];
-  state.redoStack = [];
-  
+  state.view = { scale: 1, tx: 0, ty: 0 }; state.undoStack = []; state.redoStack = [];
   const lib = loadLibrary();
-  
   if (state.layoutItems.length === 0) {
     document.getElementById('layout-canvas').innerHTML = '<div class="canvas-float-bar"><div class="float-group"><button class="float-btn" disabled>↶</button><button class="float-btn" disabled>↷</button></div><div class="float-group"><button class="float-btn" onclick="resetView()">⛶</button></div></div><div style="color:var(--glow-blue);font-size:20px">请先在库中选择款式</div>';
     document.getElementById('piece-list').innerHTML = '<div class="piece-empty">库中暂无选中款式</div>';
-    updateUndoRedoButtons();
-    return;
+    updateUndoRedoButtons(); return;
   }
-  
   const key = state.layoutItems.slice().sort().join(',');
   if (key !== state._lastLayoutItemsKey) {
-    state._lastLayoutItemsKey = key;
-    const newQty = {};
+    state._lastLayoutItemsKey = key; const newQty = {};
     for (const id of state.layoutItems) {
-      const item = lib.find(x => x.id === id);
-      if (!item) continue;
+      const item = lib.find(x => x.id === id); if (!item) continue;
       const basePieces = generatePiecesFromItem(item);
-      for (const piece of basePieces) {
-        const qKey = `${id}_${piece.id}`;
-        newQty[qKey] = state.layoutQty[qKey] !== undefined ? state.layoutQty[qKey] : (item.quantity || 1);
-      }
+      for (const piece of basePieces) { const qKey = `${id}_${piece.id}`; newQty[qKey] = state.layoutQty[qKey] !== undefined ? state.layoutQty[qKey] : (item.quantity || 1); }
     }
-    state.layoutQty = newQty;
-    rebuildLayoutPieces(true);
-  } else if (state.layoutPieces.length === 0 && Object.keys(state.layoutQty).length > 0) {
-    rebuildLayoutPieces(true);
-  }
-  
-  document.getElementById('fw-val').textContent = state.fabricWidth;
-  document.getElementById('fl-val').textContent = state.fabricLength;
-  renderLayout();
-  renderPieceList();
-  updateUndoRedoButtons();
+    state.layoutQty = newQty; rebuildLayoutPieces(true);
+  } else if (state.layoutPieces.length === 0 && Object.keys(state.layoutQty).length > 0) { rebuildLayoutPieces(true); }
+  document.getElementById('fw-val').textContent = state.fabricWidth; document.getElementById('fl-val').textContent = state.fabricLength;
+  renderLayout(); renderPieceList(); updateUndoRedoButtons();
 }
-function startLayoutFromLibrary() {
-  if (state.layoutItems.length === 0) { showToast('请先选择款式', true); return; }
-  state._lastLayoutItemsKey = '';
-  go('layout');
-}
-
+function startLayoutFromLibrary() { if (state.layoutItems.length === 0) { showToast('请先选择款式', true); return; } state._lastLayoutItemsKey = ''; go('layout'); }
 function rebuildLayoutPieces(autoArrange = false) {
-  const lib = loadLibrary();
-  const oldPieces = state.layoutPieces;
-  const newPieces = [];
-  
-  let maxY = 0;
-  for (const p of oldPieces) {
-    const bb = bbox(p.outline);
-    maxY = Math.max(maxY, p.offset[1] + bb.maxY);
-  }
-
+  const lib = loadLibrary(), oldPieces = state.layoutPieces, newPieces = [];
+  let maxY = 0; for (const p of oldPieces) { const bb = bbox(p.outline); maxY = Math.max(maxY, p.offset[1] + bb.maxY); }
   for (const libId of state.layoutItems) {
-    const item = lib.find(x => x.id === libId);
-    if (!item) continue;
+    const item = lib.find(x => x.id === libId); if (!item) continue;
     const basePieces = generatePiecesFromItem(item);
     for (const piece of basePieces) {
-      const qKey = `${libId}_${piece.id}`;
-      const qty = state.layoutQty[qKey] !== undefined ? state.layoutQty[qKey] : 1;
-      
+      const qKey = `${libId}_${piece.id}`, qty = state.layoutQty[qKey] !== undefined ? state.layoutQty[qKey] : 1;
       for (let k = 0; k < qty; k++) {
-        const oldMatch = oldPieces.find(op => 
-          op.libraryId === libId && op.pieceId === piece.id && op.copyIndex === k
-        );
-        
-        if (oldMatch) {
-          newPieces.push(oldMatch);
-        } else {
+        const oldMatch = oldPieces.find(op => op.libraryId === libId && op.pieceId === piece.id && op.copyIndex === k);
+        if (oldMatch) { newPieces.push(oldMatch); }
+        else {
           const bb = bbox(piece.outline);
-          newPieces.push({
-            libraryId: libId,
-            copyIndex: k,
-            pieceId: piece.id,
-            name: piece.name,
-            outline: piece.outline,
-            holes: piece.holes,
-            notches: piece.notches,
-            offset: [0, maxY + 10],
-            userMoved: true
-          });
+          newPieces.push({ libraryId: libId, copyIndex: k, pieceId: piece.id, name: piece.name, outline: piece.outline, holes: piece.holes, notches: piece.notches, offset: [0, maxY + 10], userMoved: true });
           maxY += bb.h + 10;
         }
       }
     }
   }
-  
-  if (autoArrange) autoArrangeNewPieces(newPieces);
-  state.layoutPieces = newPieces;
+  if (autoArrange) autoArrangeNewPieces(newPieces); state.layoutPieces = newPieces;
 }
-
 function autoArrangeNewPieces(pieces) {
   let cx = 0, cy = 0, rh = 0;
-  // 这里的 cx, cy 是对应物理 mm 的 X轴(长度) 和 Y轴(宽度)
-  // fabricWidth 限制 X轴，fabricLength 限制 Y轴
   for (const p of pieces) {
     const bb = bbox(p.outline);
-    if (cx + bb.w > state.fabricWidth) {
-      cx = 0;
-      cy += rh;
-      rh = 0;
-    }
-    p.offset = [cx - bb.minX, cy - bb.minY];
-    p.userMoved = false;
-    cx += bb.w;
-    rh = Math.max(rh, bb.h);
+    if (cx + bb.w > state.fabricWidth) { cx = 0; cy += rh; rh = 0; }
+    p.offset = [cx - bb.minX, cy - bb.minY]; p.userMoved = false; cx += bb.w; rh = Math.max(rh, bb.h);
   }
 }
-
-function autoArrangeAll() {
-  pushHistory();
-  autoArrangeNewPieces(state.layoutPieces);
-  renderLayout();
-  showToast('已紧密排版 ✓');
-}
-
+function autoArrangeAll() { pushHistory(); autoArrangeNewPieces(state.layoutPieces); renderLayout(); showToast('已紧密排版 ✓'); }
 function renderPieceList() {
-  const lib = loadLibrary();
-  const el = document.getElementById('piece-list');
-  if (state.layoutItems.length === 0) {
-    el.innerHTML = '<div class="piece-empty">请从库中选择款式</div>';
-    return;
-  }
-  
+  const lib = loadLibrary(), el = document.getElementById('piece-list');
+  if (state.layoutItems.length === 0) { el.innerHTML = '<div class="piece-empty">请从库中选择款式</div>'; return; }
   el.innerHTML = state.layoutItems.map(id => {
-    const item = lib.find(x => x.id === id);
-    if (!item) return '';
+    const item = lib.find(x => x.id === id); if (!item) return '';
     const basePieces = generatePiecesFromItem(item);
-    
-    let html = `
-      <div class="piece-group">
-        <div class="piece-group-title">${templateName(item.template)} ${item.params.width}×${item.params.depth}</div>
-    `;
-    
+    let html = `<div class="piece-group"><div class="piece-group-title">${templateName(item.template)} ${item.params.width}×${item.params.depth}</div>`;
     basePieces.forEach(piece => {
-      const qKey = `${id}_${piece.id}`;
-      const qty = state.layoutQty[qKey] !== undefined ? state.layoutQty[qKey] : 1;
-      html += `
-        <div class="piece-item-row">
-          <div class="pi-name"><b>${piece.id}</b> ${piece.name}</div>
-          <div class="pr-ctrls">
-            <button class="pr-btn" onclick="changePieceQty(${id}, '${piece.id}', -1)">−</button>
-            <span class="pr-qty">${qty}</span>
-            <button class="pr-btn" onclick="changePieceQty(${id}, '${piece.id}', 1)">+</button>
-          </div>
-        </div>
-      `;
+      const qKey = `${id}_${piece.id}`, qty = state.layoutQty[qKey] !== undefined ? state.layoutQty[qKey] : 1;
+      html += `<div class="piece-item-row"><div class="pi-name"><b>${piece.id}</b> ${piece.name}</div><div class="pr-ctrls"><button class="pr-btn" onclick="changePieceQty(${id}, '${piece.id}', -1)">−</button><span class="pr-qty">${qty}</span><button class="pr-btn" onclick="changePieceQty(${id}, '${piece.id}', 1)">+</button></div></div>`;
     });
-    
-    html += `</div>`;
-    return html;
+    html += `</div>`; return html;
   }).join('');
 }
-
 function changePieceQty(libraryId, pieceId, delta) {
-  const qKey = `${libraryId}_${pieceId}`;
-  const cur = state.layoutQty[qKey] !== undefined ? state.layoutQty[qKey] : 1;
-  const next = Math.max(0, Math.min(99, cur + delta)); 
-  if (next === cur) return;
-  
-  pushHistory();
-  state.layoutQty[qKey] = next;
-  rebuildLayoutPieces(false);
-  renderLayout();
-  renderPieceList();
+  const qKey = `${libraryId}_${pieceId}`, cur = state.layoutQty[qKey] !== undefined ? state.layoutQty[qKey] : 1;
+  const next = Math.max(0, Math.min(99, cur + delta)); if (next === cur) return;
+  pushHistory(); state.layoutQty[qKey] = next; rebuildLayoutPieces(false); renderLayout(); renderPieceList();
 }
-
 function computeKPIs() {
-  let maxY = 0;
-  let placedArea = 0;
-  for (const p of state.layoutPieces) {
-    const bb = bbox(p.outline);
-    maxY = Math.max(maxY, p.offset[1] + bb.maxY);
-    placedArea += polygonArea(p.outline);
-  }
-  const util = placedArea / (state.fabricWidth * state.fabricLength);
-  return { util, used: maxY };
+  let maxY = 0, placedArea = 0;
+  for (const p of state.layoutPieces) { const bb = bbox(p.outline); maxY = Math.max(maxY, p.offset[1] + bb.maxY); placedArea += polygonArea(p.outline); }
+  const util = placedArea / (state.fabricWidth * state.fabricLength); return { util, used: maxY };
 }
-
 function renderLayout() {
   const c = document.getElementById('layout-canvas');
-  c.innerHTML = `
-    <div class="canvas-float-bar">
-      <div class="float-group">
-        <button class="float-btn" id="btn-undo" onclick="undoLayout()" title="撤销" ${state.undoStack.length===0?'disabled':''}>↶</button>
-        <button class="float-btn" id="btn-redo" onclick="redoLayout()" title="恢复" ${state.redoStack.length===0?'disabled':''}>↷</button>
-      </div>
-      <div class="float-group">
-        <button class="float-btn" onclick="resetView()" title="重置视图">⛶</button>
-      </div>
-    </div>
-  `;
-  
-  if (state.layoutPieces.length === 0) {
-    c.innerHTML += '<div style="color:var(--glow-blue);font-size:20px">暂无排版的裁片</div>';
-    document.getElementById('layout-step').textContent = '利用率 0%';
-    document.getElementById('fabric-info').textContent = `已用 0m`;
-    return;
-  }
-  
-  // fw 是用户定义的“长度”（横向X轴）
-  // fl 是用户定义的“宽度”（竖向Y轴）
-  const fw = state.fabricWidth, fl = state.fabricLength;
-  const pad = 20;
-  const W = 360, H = 480;
+  c.innerHTML = `<div class="canvas-float-bar"><div class="float-group"><button class="float-btn" id="btn-undo" onclick="undoLayout()" ${state.undoStack.length===0?'disabled':''}>↶</button><button class="float-btn" id="btn-redo" onclick="redoLayout()" ${state.redoStack.length===0?'disabled':''}>↷</button></div><div class="float-group"><button class="float-btn" onclick="resetView()">⛶</button></div></div>`;
+  if (state.layoutPieces.length === 0) { c.innerHTML += '<div style="color:var(--glow-blue);font-size:20px">暂无排版的裁片</div>'; document.getElementById('layout-step').textContent = '利用率 0%'; document.getElementById('fabric-info').textContent = `已用 0m`; return; }
+  const fw = state.fabricWidth, fl = state.fabricLength, pad = 20, W = 360, H = 480;
   const baseScale = Math.min((W-pad*2)/fw, (H-pad*2)/fl);
-  
-  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="touch-action:none">`;
-  svg += `<g id="viewport" transform="translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})">`;
-  
-  svg += `<rect x="${pad}" y="${pad}" width="${fw*baseScale}" height="${fl*baseScale}"
-    fill="none" stroke="rgba(0, 229, 255, 0.3)" stroke-width="1" stroke-dasharray="4 4"/>`;
-    
-  svg += `<g id="snap-guides" pointer-events="none"></g>`;
-  
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="touch-action:none"><g id="viewport" transform="translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})">`;
+  svg += `<rect x="${pad}" y="${pad}" width="${fw*baseScale}" height="${fl*baseScale}" fill="none" stroke="rgba(0, 229, 255, 0.3)" stroke-width="1" stroke-dasharray="4 4"/><g id="snap-guides" pointer-events="none"></g>`;
   state.layoutPieces.forEach((p, idx) => {
-    const [dx, dy] = p.offset;
-    const tx = x => pad + (x + dx) * baseScale;
-    const ty = y => pad + (y + dy) * baseScale;
+    const [dx, dy] = p.offset, tx = x => pad + (x + dx) * baseScale, ty = y => pad + (y + dy) * baseScale;
     svg += `<g data-piece-idx="${idx}">`;
-    
     const d = 'M ' + p.outline.map(([x,y]) => `${tx(x)} ${ty(y)}`).join(' L ') + ' Z';
     svg += `<path d="${d}" fill="none" stroke="var(--glow-blue)" stroke-width="1.2" pointer-events="all"/>`;
-    
-    p.holes.forEach(hole => {
-      const hd = 'M ' + hole.map(([x,y]) => `${tx(x)} ${ty(y)}`).join(' L ') + ' Z';
-      svg += `<path d="${hd}" fill="none" stroke="var(--glow-blue)" stroke-width="1" pointer-events="none"/>`;
-    });
-    
-    p.notches.forEach(n => {
-      const sz = n.size * baseScale;
-      svg += markerSVG(tx(n.x), ty(n.y), sz, n.shape, 'var(--glow-blue)');
-    });
-    
-    const bb = bbox(p.outline);
-    const cx = tx(bb.minX + bb.w/2);
-    const cy = ty(bb.minY + bb.h/2);
-    // 放大画布内文字
-    svg += `<text x="${cx}" y="${cy}" fill="var(--glow-blue)" font-size="16" font-weight="800" text-anchor="middle" opacity="0.9" pointer-events="none">${p.pieceId}</text>`;
-    svg += `</g>`;
+    p.holes.forEach(hole => { const hd = 'M ' + hole.map(([x,y]) => `${tx(x)} ${ty(y)}`).join(' L ') + ' Z'; svg += `<path d="${hd}" fill="none" stroke="var(--glow-blue)" stroke-width="1" pointer-events="none"/>`; });
+    p.notches.forEach(n => { const sz = n.size * baseScale; svg += markerSVG(tx(n.x), ty(n.y), sz, n.shape, 'var(--glow-blue)'); });
+    const bb = bbox(p.outline), cx = tx(bb.minX + bb.w/2), cy = ty(bb.minY + bb.h/2);
+    svg += `<text x="${cx}" y="${cy}" fill="var(--glow-blue)" font-size="16" font-weight="800" text-anchor="middle" opacity="0.9" pointer-events="none">${p.pieceId}</text></g>`;
   });
-  
-  svg += `</g>`;
-  svg += '</svg>';
-  c.innerHTML += svg;
-  
-  updateKPIsAndHints();
+  svg += `</g></svg>`; c.innerHTML += svg; updateKPIsAndHints();
 }
-
 function updateKPIsAndHints() {
-  const kpi = computeKPIs();
-  document.getElementById('layout-step').textContent = `利用率 ${(kpi.util * 100).toFixed(0)}%`;
-  document.getElementById('fabric-info').textContent = `已用 ${(kpi.used / 1000).toFixed(2)}m`;
+  const kpi = computeKPIs(); document.getElementById('layout-step').textContent = `利用率 ${(kpi.util * 100).toFixed(0)}%`; document.getElementById('fabric-info').textContent = `已用 ${(kpi.used / 1000).toFixed(2)}m`;
 }
+function resetView() { state.view = { scale: 1, tx: 0, ty: 0 }; renderLayout(); }
 
-function resetView() {
-  state.view = { scale: 1, tx: 0, ty: 0 };
-  renderLayout();
-}
-
-/* ==================== 手势与拖拽 ==================== */
-let dragState = null; 
-let panState = null;  
-let pinchState = null; 
-let dragStartState = null; 
-let panVelocity = { x: 0, y: 0 };
-let lastPanPos = { x: 0, y: 0 };
-let lastPanTime = 0;
-let panAnimId = null;
-
-function getTouchPos(e) {
-  if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  return { x: e.clientX, y: e.clientY };
-}
-function getTouchDist(e) {
-  if (!e.touches || e.touches.length < 2) return 0;
-  return Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-}
-
+let dragState = null, panState = null, pinchState = null, dragStartState = null;
+let panVelocity = { x: 0, y: 0 }, lastPanPos = { x: 0, y: 0 }, lastPanTime = 0, panAnimId = null;
+function getTouchPos(e) { if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY }; return { x: e.clientX, y: e.clientY }; }
+function getTouchDist(e) { if (!e.touches || e.touches.length < 2) return 0; return Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
 function onCanvasPointerDown(e) {
   if (panAnimId) cancelAnimationFrame(panAnimId);
-
   if (e.touches && e.touches.length === 2) {
-    dragState = null;
-    panState = null;
-    pinchState = {
-      dist: getTouchDist(e),
-      center: { x: (e.touches[0].clientX + e.touches[1].clientX)/2, y: (e.touches[0].clientY + e.touches[1].clientY)/2 },
-      startScale: state.view.scale,
-      startTx: state.view.tx,
-      startTy: state.view.ty,
-    };
+    dragState = null; panState = null;
+    pinchState = { dist: getTouchDist(e), center: { x: (e.touches[0].clientX + e.touches[1].clientX)/2, y: (e.touches[0].clientY + e.touches[1].clientY)/2 }, startScale: state.view.scale, startTx: state.view.tx, startTy: state.view.ty };
     return;
   }
-  
   if (e.type === 'mousedown' && e.button !== 0) return;
-
-  const pos = getTouchPos(e);
-  const target = e.target.closest('[data-piece-idx]');
-  
+  const pos = getTouchPos(e), target = e.target.closest('[data-piece-idx]');
   if (target) {
-    const idx = parseInt(target.dataset.pieceIdx);
-    if (isNaN(idx)) return;
-    const piece = state.layoutPieces[idx];
-    if (!piece) return;
-    e.preventDefault();
-    
-    dragStartState = JSON.stringify({
-      pieces: state.layoutPieces,
-      qty: state.layoutQty
-    });
-
-    dragState = {
-      idx,
-      startX: pos.x,
-      startY: pos.y,
-      startOffset: [...piece.offset],
-      node: target,
-    };
-    target.classList.add('dragging');
-    target.parentNode.appendChild(target); 
+    const idx = parseInt(target.dataset.pieceIdx); if (isNaN(idx)) return;
+    const piece = state.layoutPieces[idx]; if (!piece) return; e.preventDefault();
+    dragStartState = JSON.stringify({ pieces: state.layoutPieces, qty: state.layoutQty });
+    dragState = { idx, startX: pos.x, startY: pos.y, startOffset: [...piece.offset], node: target };
+    target.classList.add('dragging'); target.parentNode.appendChild(target); 
   } else {
-    e.preventDefault();
-    panState = {
-      startX: pos.x,
-      startY: pos.y,
-      startTx: state.view.tx,
-      startTy: state.view.ty,
-    };
-    lastPanPos = { x: pos.x, y: pos.y };
-    lastPanTime = performance.now();
-    panVelocity = { x: 0, y: 0 };
+    e.preventDefault(); panState = { startX: pos.x, startY: pos.y, startTx: state.view.tx, startTy: state.view.ty };
+    lastPanPos = { x: pos.x, y: pos.y }; lastPanTime = performance.now(); panVelocity = { x: 0, y: 0 };
   }
 }
-
 function onCanvasPointerMove(e) {
   const pos = getTouchPos(e);
-  
   if (e.touches && e.touches.length === 2 && pinchState) {
-    e.preventDefault();
-    const dist = getTouchDist(e);
-    const factor = dist / pinchState.dist;
+    e.preventDefault(); const dist = getTouchDist(e), factor = dist / pinchState.dist;
     state.view.scale = Math.max(0.5, Math.min(5, pinchState.startScale * factor));
-    
     const curCenter = { x: (e.touches[0].clientX + e.touches[1].clientX)/2, y: (e.touches[0].clientY + e.touches[1].clientY)/2 };
-    const dx = curCenter.x - pinchState.center.x;
-    const dy = curCenter.y - pinchState.center.y;
-    
-    state.view.tx = pinchState.startTx + dx;
-    state.view.ty = pinchState.startTy + dy;
-    
-    const vp = document.getElementById('viewport');
-    if (vp) vp.setAttribute('transform', `translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})`);
-    return;
+    state.view.tx = pinchState.startTx + (curCenter.x - pinchState.center.x); state.view.ty = pinchState.startTy + (curCenter.y - pinchState.center.y);
+    const vp = document.getElementById('viewport'); if (vp) vp.setAttribute('transform', `translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})`); return;
   }
-  
   if (panState) {
-    e.preventDefault();
-    const dx = pos.x - panState.startX;
-    const dy = pos.y - panState.startY;
-    state.view.tx = panState.startTx + dx;
-    state.view.ty = panState.startTy + dy;
-    
-    const now = performance.now();
-    const dt = Math.max(1, now - lastPanTime);
-    panVelocity = {
-      x: (pos.x - lastPanPos.x) / dt,
-      y: (pos.y - lastPanPos.y) / dt
-    };
-    lastPanPos = { x: pos.x, y: pos.y };
-    lastPanTime = now;
-    
-    const vp = document.getElementById('viewport');
-    if (vp) vp.setAttribute('transform', `translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})`);
-    return;
+    e.preventDefault(); const dx = pos.x - panState.startX, dy = pos.y - panState.startY;
+    state.view.tx = panState.startTx + dx; state.view.ty = panState.startTy + dy;
+    const now = performance.now(), dt = Math.max(1, now - lastPanTime);
+    panVelocity = { x: (pos.x - lastPanPos.x) / dt, y: (pos.y - lastPanPos.y) / dt };
+    lastPanPos = { x: pos.x, y: pos.y }; lastPanTime = now;
+    const vp = document.getElementById('viewport'); if (vp) vp.setAttribute('transform', `translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})`); return;
   }
-
   if (dragState) {
-    e.preventDefault();
-    
-    const W = 360, H = 480;
-    const baseScale = Math.min((W-40)/state.fabricWidth, (H-40)/state.fabricLength);
-    const mmPerPx = 1 / (baseScale * state.view.scale);
-    
-    const dxPx = pos.x - dragState.startX;
-    const dyPx = pos.y - dragState.startY;
-    const dxMM = dxPx * mmPerPx;
-    const dyMM = dyPx * mmPerPx;
-    
-    const piece = state.layoutPieces[dragState.idx];
-    const bb = bbox(piece.outline);
-    
-    let newOffset = [
-      dragState.startOffset[0] + dxMM,
-      dragState.startOffset[1] + dyMM,
-    ];
-    
-    // 限制在横向(长度)和竖向(宽度)范围内
+    e.preventDefault(); const W = 360, H = 480, baseScale = Math.min((W-40)/state.fabricWidth, (H-40)/state.fabricLength), mmPerPx = 1 / (baseScale * state.view.scale);
+    const dxMM = (pos.x - dragState.startX) * mmPerPx, dyMM = (pos.y - dragState.startY) * mmPerPx;
+    const piece = state.layoutPieces[dragState.idx], bb = bbox(piece.outline);
+    let newOffset = [dragState.startOffset[0] + dxMM, dragState.startOffset[1] + dyMM];
     newOffset[0] = Math.max(-bb.minX, Math.min(state.fabricWidth - bb.maxX, newOffset[0]));
     newOffset[1] = Math.max(-bb.minY, Math.min(state.fabricLength - bb.maxY, newOffset[1]));
-    
     const snap = findSmartSnap(piece, newOffset, dragState.idx, mmPerPx);
-    if (snap.dx !== 0) newOffset[0] += snap.dx;
-    if (snap.dy !== 0) newOffset[1] += snap.dy;
-    
-    piece.offset = newOffset;
-    piece.userMoved = true;
-    
-    if (snap.dx !== 0 || snap.dy !== 0) {
-      dragState.node.classList.add('snapped');
-    } else {
-      dragState.node.classList.remove('snapped');
-    }
-    
-    const pad = 20;
-    const gx = pad + newOffset[0] * baseScale;
-    const gy = pad + newOffset[1] * baseScale;
-    
+    if (snap.dx !== 0) newOffset[0] += snap.dx; if (snap.dy !== 0) newOffset[1] += snap.dy;
+    piece.offset = newOffset; piece.userMoved = true;
+    if (snap.dx !== 0 || snap.dy !== 0) dragState.node.classList.add('snapped'); else dragState.node.classList.remove('snapped');
+    const pad = 20, gx = pad + newOffset[0] * baseScale, gy = pad + newOffset[1] * baseScale;
     dragState.node.setAttribute('transform', `translate(${gx}, ${gy})`);
-    
     const pathEl = dragState.node.querySelector('path');
-    if (pathEl) {
-      const d = 'M ' + piece.outline.map(([x,y]) => `${x*baseScale} ${y*baseScale}`).join(' L ') + ' Z';
-      pathEl.setAttribute('d', d);
-    }
-    
+    if (pathEl) { const d = 'M ' + piece.outline.map(([x,y]) => `${x*baseScale} ${y*baseScale}`).join(' L ') + ' Z'; pathEl.setAttribute('d', d); }
     const guides = document.getElementById('snap-guides');
     if (guides) {
       let gHtml = '';
-      if (snap.guideX !== null) {
-        const gxLine = pad + snap.guideX * baseScale;
-        gHtml += `<line x1="${gxLine}" y1="${pad}" x2="${gxLine}" y2="${pad + state.fabricLength * baseScale}" stroke="var(--glow-blue)" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.8"/>`;
-      }
-      if (snap.guideY !== null) {
-        const gyLine = pad + snap.guideY * baseScale;
-        gHtml += `<line x1="${pad}" y1="${gyLine}" x2="${pad + state.fabricWidth * baseScale}" y2="${gyLine}" stroke="var(--glow-blue)" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.8"/>`;
-      }
+      if (snap.guideX !== null) gHtml += `<line x1="${pad + snap.guideX * baseScale}" y1="${pad}" x2="${pad + snap.guideX * baseScale}" y2="${pad + state.fabricLength * baseScale}" stroke="var(--glow-blue)" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.8"/>`;
+      if (snap.guideY !== null) gHtml += `<line x1="${pad}" y1="${pad + snap.guideY * baseScale}" x2="${pad + state.fabricWidth * baseScale}" y2="${pad + snap.guideY * baseScale}" stroke="var(--glow-blue)" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.8"/>`;
       guides.innerHTML = gHtml;
     }
-    
     updateKPIsAndHints();
   }
 }
-
 function momentumPan() {
-  state.view.tx += panVelocity.x * 16; 
-  state.view.ty += panVelocity.y * 16;
-  
-  panVelocity.x *= 0.95; 
-  panVelocity.y *= 0.95;
-  
-  const vp = document.getElementById('viewport');
-  if (vp) vp.setAttribute('transform', `translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})`);
-  
-  if (Math.abs(panVelocity.x) > 0.1 || Math.abs(panVelocity.y) > 0.1) {
-    panAnimId = requestAnimationFrame(momentumPan);
-  }
+  state.view.tx += panVelocity.x * 16; state.view.ty += panVelocity.y * 16;
+  panVelocity.x *= 0.95; panVelocity.y *= 0.95;
+  const vp = document.getElementById('viewport'); if (vp) vp.setAttribute('transform', `translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})`);
+  if (Math.abs(panVelocity.x) > 0.1 || Math.abs(panVelocity.y) > 0.1) panAnimId = requestAnimationFrame(momentumPan);
 }
-
 function onCanvasPointerUp(e) {
   if (dragState) {
-    dragState.node.classList.remove('dragging');
-    dragState.node.classList.remove('snapped');
-    dragState = null;
-    
-    if (dragStartState) {
-      const currentState = JSON.stringify({ pieces: state.layoutPieces, qty: state.layoutQty });
-      if (currentState !== dragStartState) {
-        pushHistory(dragStartState);
-      }
-      dragStartState = null;
-    }
-    
-    const guides = document.getElementById('snap-guides');
-    if (guides) guides.innerHTML = '';
-    
+    dragState.node.classList.remove('dragging'); dragState.node.classList.remove('snapped'); dragState = null;
+    if (dragStartState) { const currentState = JSON.stringify({ pieces: state.layoutPieces, qty: state.layoutQty }); if (currentState !== dragStartState) pushHistory(dragStartState); dragStartState = null; }
+    const guides = document.getElementById('snap-guides'); if (guides) guides.innerHTML = '';
     renderLayout(); 
   }
-  
-  if (panState) {
-    panState = null;
-    if (Math.abs(panVelocity.x) > 0.5 || Math.abs(panVelocity.y) > 0.5) {
-      momentumPan();
-    }
-  }
+  if (panState) { panState = null; if (Math.abs(panVelocity.x) > 0.5 || Math.abs(panVelocity.y) > 0.5) momentumPan(); }
   if (pinchState) pinchState = null;
 }
-
 function onCanvasWheel(e) {
-  e.preventDefault();
-  const factor = e.deltaY < 0 ? 1.1 : 0.9;
+  e.preventDefault(); const factor = e.deltaY < 0 ? 1.1 : 0.9;
   state.view.scale = Math.max(0.5, Math.min(5, state.view.scale * factor));
-  const vp = document.getElementById('viewport');
-  if (vp) vp.setAttribute('transform', `translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})`);
+  const vp = document.getElementById('viewport'); if (vp) vp.setAttribute('transform', `translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})`);
 }
-
 function findSmartSnap(piece, newOffset, excludeIdx, mmPerPx) {
   const bb = bbox(piece.outline);
-  
   const movingPts = [
-    { x: newOffset[0] + bb.minX, y: newOffset[1] + bb.minY }, 
-    { x: newOffset[0] + bb.maxX, y: newOffset[1] + bb.minY }, 
-    { x: newOffset[0] + bb.minX, y: newOffset[1] + bb.maxY }, 
-    { x: newOffset[0] + bb.maxX, y: newOffset[1] + bb.maxY }, 
-    { x: newOffset[0] + bb.minX + bb.w/2, y: newOffset[1] + bb.minY }, 
-    { x: newOffset[0] + bb.minX + bb.w/2, y: newOffset[1] + bb.maxY }, 
-    { x: newOffset[0] + bb.minX, y: newOffset[1] + bb.minY + bb.h/2 }, 
-    { x: newOffset[0] + bb.maxX, y: newOffset[1] + bb.minY + bb.h/2 }, 
+    { x: newOffset[0] + bb.minX, y: newOffset[1] + bb.minY }, { x: newOffset[0] + bb.maxX, y: newOffset[1] + bb.minY },
+    { x: newOffset[0] + bb.minX, y: newOffset[1] + bb.maxY }, { x: newOffset[0] + bb.maxX, y: newOffset[1] + bb.maxY },
+    { x: newOffset[0] + bb.minX + bb.w/2, y: newOffset[1] + bb.minY }, { x: newOffset[0] + bb.minX + bb.w/2, y: newOffset[1] + bb.maxY },
+    { x: newOffset[0] + bb.minX, y: newOffset[1] + bb.minY + bb.h/2 }, { x: newOffset[0] + bb.maxX, y: newOffset[1] + bb.minY + bb.h/2 }
   ];
-  
-  const targets = [];
-  targets.push(
-    { x: 0, y: 0 }, { x: state.fabricWidth, y: 0 },
-    { x: 0, y: state.fabricLength }, { x: state.fabricWidth, y: state.fabricLength },
-    { x: state.fabricWidth/2, y: 0 }, { x: state.fabricWidth/2, y: state.fabricLength },
-    { x: 0, y: state.fabricLength/2 }, { x: state.fabricWidth, y: state.fabricLength/2 }
-  );
-
+  const targets = [
+    { x: 0, y: 0 }, { x: state.fabricWidth, y: 0 }, { x: 0, y: state.fabricLength }, { x: state.fabricWidth, y: state.fabricLength },
+    { x: state.fabricWidth/2, y: 0 }, { x: state.fabricWidth/2, y: state.fabricLength }, { x: 0, y: state.fabricLength/2 }, { x: state.fabricWidth, y: state.fabricLength/2 }
+  ];
   state.layoutPieces.forEach((other, i) => {
-    if (i === excludeIdx) return;
-    const ob = bbox(other.outline);
-    const ox = other.offset[0], oy = other.offset[1];
+    if (i === excludeIdx) return; const ob = bbox(other.outline), ox = other.offset[0], oy = other.offset[1];
     targets.push(
-      { x: ox + ob.minX, y: oy + ob.minY },
-      { x: ox + ob.maxX, y: oy + ob.minY },
-      { x: ox + ob.minX, y: oy + ob.maxY },
-      { x: ox + ob.maxX, y: oy + ob.maxY },
-      { x: ox + ob.minX + ob.w/2, y: oy + ob.minY },
-      { x: ox + ob.minX + ob.w/2, y: oy + ob.maxY },
-      { x: ox + ob.minX, y: oy + ob.minY + ob.h/2 },
-      { x: ox + ob.maxX, y: oy + ob.minY + ob.h/2 }
+      { x: ox + ob.minX, y: oy + ob.minY }, { x: ox + ob.maxX, y: oy + ob.minY }, { x: ox + ob.minX, y: oy + ob.maxY }, { x: ox + ob.maxX, y: oy + ob.maxY },
+      { x: ox + ob.minX + ob.w/2, y: oy + ob.minY }, { x: ox + ob.minX + ob.w/2, y: oy + ob.maxY }, { x: ox + ob.minX, y: oy + ob.minY + ob.h/2 }, { x: ox + ob.maxX, y: oy + ob.minY + ob.h/2 }
     );
   });
-
   const THRESHOLD_MM = 25 * mmPerPx;
-  
-  let bestDx = 0, bestDistX = THRESHOLD_MM, guideX = null;
-  let bestDy = 0, bestDistY = THRESHOLD_MM, guideY = null;
-
+  let bestDx = 0, bestDistX = THRESHOLD_MM, guideX = null, bestDy = 0, bestDistY = THRESHOLD_MM, guideY = null;
   for (const p of movingPts) {
     for (const t of targets) {
-      const dx = t.x - p.x;
-      if (Math.abs(dx) < bestDistX) { bestDistX = Math.abs(dx); bestDx = dx; guideX = t.x; }
-      const dy = t.y - p.y;
-      if (Math.abs(dy) < bestDistY) { bestDistY = Math.abs(dy); bestDy = dy; guideY = t.y; }
+      const dx = t.x - p.x; if (Math.abs(dx) < bestDistX) { bestDistX = Math.abs(dx); bestDx = dx; guideX = t.x; }
+      const dy = t.y - p.y; if (Math.abs(dy) < bestDistY) { bestDistY = Math.abs(dy); bestDy = dy; guideY = t.y; }
     }
   }
-
   return { dx: bestDx, dy: bestDy, guideX, guideY };
 }
-
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('layout-canvas');
-  if (canvas) {
-    canvas.addEventListener('mousedown', onCanvasPointerDown);
-    canvas.addEventListener('touchstart', onCanvasPointerDown, { passive: false });
-    canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
-  }
-  document.addEventListener('mousemove', onCanvasPointerMove);
-  document.addEventListener('touchmove', onCanvasPointerMove, { passive: false });
-  document.addEventListener('mouseup', onCanvasPointerUp);
-  document.addEventListener('touchend', onCanvasPointerUp);
+  if (canvas) { canvas.addEventListener('mousedown', onCanvasPointerDown); canvas.addEventListener('touchstart', onCanvasPointerDown, { passive: false }); canvas.addEventListener('wheel', onCanvasWheel, { passive: false }); }
+  document.addEventListener('mousemove', onCanvasPointerMove); document.addEventListener('touchmove', onCanvasPointerMove, { passive: false });
+  document.addEventListener('mouseup', onCanvasPointerUp); document.addEventListener('touchend', onCanvasPointerUp);
 });
 
-/* ==================== 排版算法 ==================== */
 function shelfNest(pieces, fabricWidth, fabricLength, spacing, margin = 0) {
-  const items = [];
-  pieces.forEach(p => { for (let i = 0; i < p.quantity; i++) items.push(p); });
-  const boxes = items.map(p => ({ piece: p, bb: bbox(p.outline) }));
-  boxes.sort((a,b) => b.bb.h - a.bb.h);
-  const placements = [];
-  const overflow = [];
-  let x = margin, y = margin, rowH = 0;
+  const items = []; pieces.forEach(p => { for (let i = 0; i < p.quantity; i++) items.push(p); });
+  const boxes = items.map(p => ({ piece: p, bb: bbox(p.outline) })); boxes.sort((a,b) => b.bb.h - a.bb.h);
+  const placements = [], overflow = []; let x = margin, y = margin, rowH = 0;
   for (const { piece, bb } of boxes) {
     if (x + bb.w > fabricWidth - margin) { x = margin; y += rowH + spacing; rowH = 0; }
     if (y + bb.h > fabricLength - margin) { overflow.push(piece); continue; }
-    placements.push({
-      pieceId: piece.id, offset: [x - bb.minX, y - bb.minY],
-      w: bb.w, h: bb.h, outline: piece.outline, holes: piece.holes, notches: piece.notches,
-    });
-    x += bb.w + spacing;
-    rowH = Math.max(rowH, bb.h);
+    placements.push({ pieceId: piece.id, offset: [x - bb.minX, y - bb.minY], w: bb.w, h: bb.h, outline: piece.outline, holes: piece.holes, notches: piece.notches });
+    x += bb.w + spacing; rowH = Math.max(rowH, bb.h);
   }
   return { placements, overflow };
 }
-
-/* ==================== 导出 PLT ==================== */
 const UNIT_MM = 0.025;
 function mmToHPGL(mm) { return Math.round(mm / UNIT_MM); }
-
 function generatePLTFromPositions(placements) {
   const lines = ['IN;', 'SP1;', 'PA;'];
   for (const pl of placements) {
-    const [dx, dy] = pl.offset;
-    const tr = ([x,y]) => [mmToHPGL(x + dx), mmToHPGL(y + dy)];
-    const o = pl.outline.map(tr);
-    lines.push(`PU${o[0][0]},${o[0][1]};`);
+    const [dx, dy] = pl.offset, tr = ([x,y]) => [mmToHPGL(x + dx), mmToHPGL(y + dy)];
+    const o = pl.outline.map(tr); lines.push(`PU${o[0][0]},${o[0][1]};`);
     for (let i = 1; i < o.length; i++) lines.push(`PD${o[i][0]},${o[i][1]};`);
-    lines.push(`PD${o[0][0]},${o[0][1]};`);
-    lines.push('PU;');
+    lines.push(`PD${o[0][0]},${o[0][1]};`, 'PU;');
     pl.holes.forEach(hole => {
-      const hp = hole.map(tr);
-      lines.push(`PU${hp[0][0]},${hp[0][1]};`);
+      const hp = hole.map(tr); lines.push(`PU${hp[0][0]},${hp[0][1]};`);
       for (let i = 1; i < hp.length; i++) lines.push(`PD${hp[i][0]},${hp[i][1]};`);
-      lines.push(`PD${hp[0][0]},${hp[0][1]};`);
-      lines.push('PU;');
+      lines.push(`PD${hp[0][0]},${hp[0][1]};`, 'PU;');
     });
     pl.notches.forEach(n => {
-      const s = n.size;
-      let pts = [];
-      if (n.shape === 'square') {
-        pts = [
-          [n.x - s/2, n.y - s/2],
-          [n.x + s/2, n.y - s/2],
-          [n.x + s/2, n.y + s/2],
-          [n.x - s/2, n.y + s/2],
-          [n.x - s/2, n.y - s/2]
-        ];
-      } else if (n.shape === 'triangle') {
-        const R = s / Math.sqrt(3);
-        pts = [
-          [n.x, n.y - R],
-          [n.x + s/2, n.y + R/2],
-          [n.x - s/2, n.y + R/2],
-          [n.x, n.y - R]
-        ];
-      } else {
-        pts = [
-          [n.x + s/2, n.y - s/2],
-          [n.x - s/2, n.y],
-          [n.x + s/2, n.y + s/2]
-        ];
-      }
-      
-      const hp = pts.map(p => tr(p));
-      lines.push(`PU${hp[0][0]},${hp[0][1]};`);
-      for (let i = 1; i < hp.length; i++) {
-        lines.push(`PD${hp[i][0]},${hp[i][1]};`);
-      }
+      const s = n.size; let pts = [];
+      if (n.shape === 'square') pts = [[n.x-s/2,n.y-s/2],[n.x+s/2,n.y-s/2],[n.x+s/2,n.y+s/2],[n.x-s/2,n.y+s/2],[n.x-s/2,n.y-s/2]];
+      else if (n.shape === 'triangle') { const R = s / Math.sqrt(3); pts = [[n.x,n.y-R],[n.x+s/2,n.y+R/2],[n.x-s/2,n.y+R/2],[n.x,n.y-R]]; }
+      else pts = [[n.x+s/2,n.y-s/2],[n.x-s/2,n.y],[n.x+s/2,n.y+s/2]];
+      const hp = pts.map(p => tr(p)); lines.push(`PU${hp[0][0]},${hp[0][1]};`);
+      for (let i = 1; i < hp.length; i++) lines.push(`PD${hp[i][0]},${hp[i][1]};`);
       lines.push('PU;');
     });
   }
-  lines.push('PU;');
-  return lines.join('\n');
+  lines.push('PU;'); return lines.join('\n');
 }
-
 function downloadFile(content, filename, type) {
-  const blob = new Blob([content], { type });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const blob = new Blob([content], { type }); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-
 function doExportPLT(btnEl) {
   if (state.layoutPieces.length === 0) { showToast('请先排版', true); return; }
-  const overflow = state.layoutPieces.filter(p => {
-    const bb = bbox(p.outline);
-    return p.offset[0] + bb.maxX > state.fabricWidth + 1 || p.offset[1] + bb.maxY > state.fabricLength + 1;
-  });
-  if (overflow.length > 0) {
-    if (!confirm(`还有 ${overflow.length} 个裁片超出布幅，只导出在布幅内的 ${state.layoutPieces.length - overflow.length} 个？`)) return;
-  }
+  const overflow = state.layoutPieces.filter(p => { const bb = bbox(p.outline); return p.offset[0] + bb.maxX > state.fabricWidth + 1 || p.offset[1] + bb.maxY > state.fabricLength + 1; });
+  if (overflow.length > 0) { if (!confirm(`还有 ${overflow.length} 个裁片超出布幅，只导出在布幅内的 ${state.layoutPieces.length - overflow.length} 个？`)) return; }
   const pieces = state.layoutPieces.filter(p => !overflow.includes(p));
   const plt = generatePLTFromPositions(pieces);
   const stamp = new Date().toISOString().slice(0,10).replace(/-/g,'');
-  downloadFile(plt, `裁床师傅_${stamp}.plt`, 'text/plain');
-  triggerSuccess();
+  downloadFile(plt, `裁床师傅_${stamp}.plt`, 'text/plain'); triggerSuccess();
 }
+function templateName(t) { return { seat_pad_cover: '坐垫套', back_pad_cover: '靠背套', umbrella_gore: '伞片' }[t] || '版型'; }
 
-function templateName(t) {
-  return { seat_pad_cover: '坐垫套', back_pad_cover: '靠背套', umbrella_gore: '伞片' }[t] || '版型';
-}
-
-/* ==================== 启动 ==================== */
 renderDims();
 document.getElementById('fw-val').textContent = state.fabricWidth;
 document.getElementById('fl-val').textContent = state.fabricLength;
