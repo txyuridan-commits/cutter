@@ -1,17 +1,16 @@
 {
   "name": "裁床师傅",
-  "short_name": "裁床师傅",
-  "start_url": "./",
-  "display": "standalone",
+  "packageId": "com.caichuang.shifu",
+  "versionName": "1.0",
+  "versionCode": 2,
+  "entry": "./index.html",
   "orientation": "portrait",
-  "background_color": "#F4F4F6",
-  "theme_color": "#F4F4F6",
-  "icons": [
-    {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231C1C1E'/%3E%3Ctext x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-weight='bold'%3E裁%3C/text%3E%3C/svg%3E",
-      "sizes": "192x192 512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+  "fullscreen": true,
+  "webDir": ".",
+  "webview": {
+    "backButton": "history",
+    "clearCacheOnStart": false,
+    "externalLinks":"inapp"
+  },
+  "permissions": ["WRITE_EXTERNAL_STORAGE","READ_EXTERNAL_STORAGE"]
 }
