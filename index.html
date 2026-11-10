@@ -4,11 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>裁床师傅</title>
-  <link rel="manifest" href="./manifest.json">
+
+<!-- 👇 下面这几行是让网页变成“真 App”的核心配置 👇 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="裁床师傅">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231C1C1E'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='white' font-weight='bold'%3E裁%3C/text%3E%3C/svg%3E">
 <meta name="theme-color" content="#F4F4F6">
-<meta name="description" content="手机裁片排版与裁床图纸工具">
-<!-- 引入 jsPDF 用于生成打印图纸 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  const manifest = {
+    "name": "裁床师傅",
+    "short_name": "裁床师傅",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#F4F4F6",
+    "theme_color": "#F4F4F6",
+    "icons": [{
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231C1C1E'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='white' font-weight='bold'%3E裁%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+  const manifestURL = URL.createObjectURL(blob);
+  document.write(`<link rel="manifest" href="${manifestURL}">`);
+</script>
+<!-- 👆 PWA 配置结束 👆 -->
+
 <style>
   :root {
     --bg: #F4F4F6;
@@ -457,19 +479,13 @@
   .lib-act-btn.del:active { background: rgba(255,193,7,0.2); }
   .lib-act-btn.edit:active { background: rgba(0,0,0,0.05); color: var(--text); }
 
-  /* ==================== 打印设置面板 ==================== */
+  /* ==================== 导出台面板 ==================== */
   .print-panel {
     background: var(--surface); padding: 24px; border-radius: var(--radius);
     display: flex; flex-direction: column; gap: 20px; box-shadow: var(--shadow);
-    margin-top: auto;
+    margin-top: 20px;
   }
   .print-panel h3 { font-size: 24px; font-weight: 800; }
-  .print-row { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: 700; }
-  .print-row select {
-    padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border);
-    background: var(--surface-dim); font-size: 20px; font-weight: 700; outline: none;
-    -webkit-appearance: none; appearance: none;
-  }
 
   /* 极简数字键盘面板 */
   .numpad-overlay {
@@ -798,36 +814,19 @@
     <div class="topbar">
       <div class="back-btn" onclick="back()">←</div>
       <div class="brand"><div class="logo">裁</div><div class="name">导出</div></div>
-      <span class="step-pill">打印 & PLT</span>
+      <span class="step-pill">生成 PLT</span>
     </div>
     
+    <!-- 仅保留生成切割文件面板 -->
     <div class="print-panel">
-      <h3>图纸打印设置</h3>
-      <div class="print-row">
-        <span>纸张大小</span>
-        <select id="pdf-paper">
-          <option value="a3">A3 (横向)</option>
-          <option value="a4">A4 (横向)</option>
-        </select>
+      <h3>导出切割文件</h3>
+      <div style="font-size:18px;color:var(--text-dim);margin-bottom:20px;line-height:1.6;font-weight:600;">
+        根据当前排版生成三图层 HPGL 格式文件：<br>
+        • 轮廓 (CUT)<br>
+        • 刀口 (NOTCH)<br>
+        • 挖孔 (HOLE)
       </div>
-      <div class="print-row">
-        <span>打印比例</span>
-        <select id="pdf-scale">
-          <option value="fit">适应单页</option>
-          <option value="1">1:1 (原大)</option>
-          <option value="0.5">1:2 缩小</option>
-          <option value="0.2">1:5 缩小</option>
-        </select>
-      </div>
-      <button class="big-btn ghost" onclick="exportToPDF(this)" style="margin-top: 8px;">📄 打印图纸 (PDF)</button>
-    </div>
-
-    <div class="print-panel" style="margin-top: 0;">
-      <h3>裁床文件</h3>
-      <div style="font-size:18px;color:var(--text-dim);margin-bottom:12px;line-height:1.5;font-weight:600;">
-        导出三图层 HPGL 格式：轮廓(CUT)、刀口(NOTCH)、挖孔(HOLE)。
-      </div>
-      <button class="big-btn primary" onclick="doExportPLT(this)">⚡ 生成切割文件 (.plt)</button>
+      <button class="big-btn primary" onclick="doExportPLT(this)" style="height: 72px; font-size: 24px;">⚡ 生成切割文件 (.plt)</button>
     </div>
 
     <div class="row" style="margin-top: auto;">
@@ -1134,7 +1133,7 @@ function redoDim() {
   startDimensionEntry(state.dimIndex);
 }
 
-// 修改：默认只生成一个位于右侧正中间的剪口
+// 默认只生成一个位于右侧正中间的剪口
 function ensureDefaultNotches() {
   if (state._notchInitDone) return;
   state._notchInitDone = true;
@@ -2376,6 +2375,7 @@ function downloadFile(content, filename, type) {
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
 function doExportPLT(btnEl) {
   if (state.layoutPieces.length === 0) { showToast('请先排版', true); return; }
   const overflow = state.layoutPieces.filter(p => {
@@ -2390,177 +2390,6 @@ function doExportPLT(btnEl) {
   const stamp = new Date().toISOString().slice(0,10).replace(/-/g,'');
   downloadFile(plt, `裁床师傅_${stamp}.plt`, 'text/plain');
   triggerSuccess();
-}
-
-/* ==================== 导出 PDF (图纸打印) ==================== */
-function exportToPDF(btnEl) {
-  if (state.layoutPieces.length === 0) { showToast('请先排版', true); return; }
-  
-  try {
-    const { jsPDF } = window.jspdf;
-    const paper = document.getElementById('pdf-paper').value;
-    const scaleOption = document.getElementById('pdf-scale').value;
-
-    // 纸张尺寸(mm) - 横向
-    const paperSizes = {
-      a3: { w: 420, h: 297 },
-      a4: { w: 297, h: 210 }
-    };
-    const paperInfo = paperSizes[paper];
-    const margin = 10; 
-    const drawW = paperInfo.w - margin * 2;
-    const drawH = paperInfo.h - margin * 2;
-    
-    const fw = state.fabricWidth;
-    const fl = state.fabricLength; 
-    
-    let scale = 1;
-    if (scaleOption === 'fit') {
-      scale = Math.min(drawW / fw, drawH / fl);
-    } else {
-      scale = parseFloat(scaleOption);
-    }
-
-    // 计算一共需要多少页 (单位: mm)
-    const scaledW = fw * scale;
-    const scaledH = fl * scale;
-    
-    const cols = Math.max(1, Math.ceil(scaledW / drawW));
-    const rows = Math.max(1, Math.ceil(scaledH / drawH));
-
-    const doc = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: paper
-    });
-
-    // 用大 Canvas 绘制 1:1 或适应比例的高清底图 (近似 100dpi，1mm = 4px)
-    const PX_MM = 4; 
-    const cw = Math.ceil(fw * PX_MM);
-    const ch = Math.ceil(fl * PX_MM);
-    
-    const offCanvas = document.createElement('canvas');
-    offCanvas.width = cw;
-    offCanvas.height = ch;
-    const ctx = offCanvas.getContext('2d');
-    
-    // 黑底(打印时为白底更省墨，但裁床核对可能是黑底看荧光，既然是打印，白底黑线最清晰)
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, cw, ch);
-    
-    // 画布边框
-    ctx.strokeStyle = '#cccccc';
-    ctx.setLineDash([10, 10]);
-    ctx.strokeRect(0, 0, cw, ch);
-    ctx.setLineDash([]);
-
-    // 绘制裁片
-    state.layoutPieces.forEach(p => {
-      const [dx, dy] = p.offset;
-      const tx = x => (x + dx) * PX_MM;
-      const ty = y => (y + dy) * PX_MM;
-      
-      // 外轮廓
-      ctx.beginPath();
-      p.outline.forEach(([x,y], i) => {
-        if (i === 0) ctx.moveTo(tx(x), ty(y));
-        else ctx.lineTo(tx(x), ty(y));
-      });
-      ctx.closePath();
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      
-      // 挖孔
-      p.holes.forEach(hole => {
-        ctx.beginPath();
-        hole.forEach(([x,y], i) => {
-          if (i === 0) ctx.moveTo(tx(x), ty(y));
-          else ctx.lineTo(tx(x), ty(y));
-        });
-        ctx.closePath();
-        ctx.stroke();
-      });
-      
-      // 刀口 / 标记
-      ctx.strokeStyle = '#FFB300'; // 打印时荧光蓝看不清，换成橙色
-      ctx.lineWidth = 1.5;
-      p.notches.forEach(n => {
-        let pts = [];
-        const s = n.size;
-        if (n.shape === 'square') {
-          pts = [[n.x-s/2,n.y-s/2],[n.x+s/2,n.y-s/2],[n.x+s/2,n.y+s/2],[n.x-s/2,n.y+s/2],[n.x-s/2,n.y-s/2]];
-        } else if (n.shape === 'triangle') {
-          const R = s / Math.sqrt(3);
-          pts = [[n.x,n.y-R],[n.x+s/2,n.y+R/2],[n.x-s/2,n.y+R/2],[n.x,n.y-R]];
-        } else {
-          pts = [[n.x+s/2,n.y-s/2],[n.x-s/2,n.y],[n.x+s/2,n.y+s/2]];
-        }
-        ctx.beginPath();
-        pts.forEach(([x,y], i) => {
-          if (i === 0) ctx.moveTo(tx(x), ty(y));
-          else ctx.lineTo(tx(x), ty(y));
-        });
-        ctx.stroke();
-      });
-      
-      // 裁片编号
-      const bb = bbox(p.outline);
-      ctx.fillStyle = '#0088AA';
-      ctx.font = 'bold 20px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(p.pieceId, tx(bb.minX + bb.w/2), ty(bb.minY + bb.h/2));
-    });
-
-    // 将 Canvas 分页放入 PDF
-    let pageIndex = 0;
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        if (pageIndex > 0) doc.addPage();
-        
-        // 当前页对应的物理 mm 坐标 (图片左上方)
-        const mmX = c * drawW;
-        const mmY = r * drawH;
-        
-        // 对应的 Canvas 像素坐标
-        const pxX = mmX / scale * PX_MM;
-        const pxY = mmY / scale * PX_MM;
-        const pxW = drawW / scale * PX_MM;
-        const pxH = drawH / scale * PX_MM;
-        
-        // 截取当前页部分
-        const pageCanvas = document.createElement('canvas');
-        pageCanvas.width = Math.min(pxW, cw - pxX);
-        pageCanvas.height = Math.min(pxH, ch - pxY);
-        
-        const pCtx = pageCanvas.getContext('2d');
-        pCtx.drawImage(offCanvas, pxX, pxY, pageCanvas.width, pageCanvas.height, 0, 0, pageCanvas.width, pageCanvas.height);
-        
-        const imgData = pageCanvas.toDataURL('image/jpeg', 0.85);
-        
-        // 写入 PDF，注意缩放比例
-        const drawImgW = pageCanvas.width / PX_MM * scale;
-        const drawImgH = pageCanvas.height / PX_MM * scale;
-        
-        doc.addImage(imgData, 'JPEG', margin, margin, drawImgW, drawImgH);
-        
-        // 添加分页信息
-        doc.setFontSize(12);
-        doc.setTextColor(100);
-        doc.text(`第 ${pageIndex + 1} 页 / 共 ${rows * cols} 页 | 比例 1:${(1/scale).toFixed(1)} | 裁剪需拼接`, margin, paperInfo.h - 5);
-        
-        pageIndex++;
-      }
-    }
-
-    const stamp = new Date().toISOString().slice(0,10).replace(/-/g,'');
-    doc.save(`裁床图纸_${stamp}.pdf`);
-    triggerSuccess();
-    
-  } catch (err) {
-    console.error(err);
-    showToast('生成 PDF 失败，请检查网络或稍后重试', true);
-  }
 }
 
 function templateName(t) {
