@@ -50,7 +50,6 @@
 
   .prompt { text-align: center; color: var(--text-dim); font-size: 18px; font-weight: 600; flex-shrink: 0; min-height: 24px; }
   
-  /* 默认的 row 样式，底部贴底 */
   .row { display: flex; gap: 12px; flex-shrink: 0; margin-top: auto; padding-top: 10px; }
   .row button { flex: 1; height: 64px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 22px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
   .row button:active { background: var(--surface-dim); transform: scale(0.95); }
@@ -59,10 +58,9 @@
   .big-btn.primary { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
   .big-btn.ghost { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
   
-  /* === 首页专属排版优化：整体居中，按钮上提 === */
-  #s-home { justify-content: center; } /* 整个屏幕内容垂直居中 */
-  #s-home .hero { flex: none; margin-bottom: 30px; } /* 取消 hero 撑满剩余空间，并增加与按钮的间距 */
-  #s-home .row { margin-top: 0; padding-bottom: 20px; } /* 取消贴底，稍微增加底部留白 */
+  #s-home { justify-content: center; }
+  #s-home .hero { flex: none; margin-bottom: 30px; }
+  #s-home .row { margin-top: 0; padding-bottom: 20px; }
 
   .hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 0 8px; }
   .hero .mark { width: 120px; height: 120px; border-radius: 32px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 56px; margin-bottom: 20px; box-shadow: var(--shadow); }
@@ -116,9 +114,10 @@
   
   .layout-canvas [data-piece-idx] { cursor: grab; transition: filter 0.1s; }
   .layout-canvas [data-piece-idx]:active { cursor: grabbing; }
-  .layout-canvas [data-piece-idx].dragging path { stroke: #FFFFFF !important; stroke-width: 2px !important; }
+  .layout-canvas [data-piece-idx].dragging path { stroke: #FFFFFF !important; }
   .layout-canvas [data-piece-idx].snapped path { filter: drop-shadow(0 0 8px var(--glow-blue)); }
   .layout-canvas [data-piece-idx].snapped text { filter: drop-shadow(0 0 4px var(--glow-blue)); }
+  
   .canvas-float-bar { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; pointer-events: none; z-index: 10; }
   .float-group { display: flex; gap: 10px; pointer-events: auto; }
   .float-btn { width: 44px; height: 44px; border-radius: 12px; background: rgba(0,0,0,0.6); border: 1px solid #333; color: var(--glow-blue); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.5); backdrop-filter: blur(4px); transition: all 0.15s; }
@@ -247,7 +246,6 @@
 
 <div class="phone">
   <div class="screen active" id="s-home">
-    <!-- 删除了 hint 和 topbar -->
     <div class="hero">
       <div class="mark">✂️</div>
       <h1>裁床师傅</h1>
@@ -343,9 +341,10 @@
           <button class="float-btn" id="btn-redo" onclick="redoLayout()" title="恢复" disabled>↷</button>
         </div>
         <div class="float-group">
-          <button class="float-btn" onclick="resetView()" title="重置">⛶</button>
+          <button class="float-btn" onclick="focusPieces()" title="聚焦裁片">⛶</button>
         </div>
       </div>
+      <div id="layout-svg-container" style="width: 100%; height: 100%; position: absolute; inset: 0; touch-action: none;"></div>
     </div>
     <div class="bottom-controls">
       <div class="fabric-bar">
@@ -356,12 +355,12 @@
         <div class="fabric-inputs">
           <div class="fabric-input-group">
             <span class="f-sub">长度 (横向)</span>
-            <div class="f-val" id="fw-val" onclick="openNumpad('布幅长度 (横向)', '', (v)=>{ if(!v)return; state.fabricWidth = parseInt(v); document.getElementById('fw-val').textContent = state.fabricWidth; renderLayout(); })"></div>
+            <div class="f-val" id="fw-val" onclick="openNumpad('布幅长度 (横向)', '', (v)=>{ if(!v)return; state.fabricWidth = parseInt(v); document.getElementById('fw-val').textContent = state.fabricWidth; focusPieces(); renderLayout(); })"></div>
           </div>
           <span class="f-x">×</span>
           <div class="fabric-input-group">
             <span class="f-sub">宽度 (竖向)</span>
-            <div class="f-val" id="fl-val" onclick="openNumpad('布幅宽度 (竖向)', '', (v)=>{ if(!v)return; state.fabricLength = parseInt(v); document.getElementById('fl-val').textContent = state.fabricLength; renderLayout(); })"></div>
+            <div class="f-val" id="fl-val" onclick="openNumpad('布幅宽度 (竖向)', '', (v)=>{ if(!v)return; state.fabricLength = parseInt(v); document.getElementById('fl-val').textContent = state.fabricLength; focusPieces(); renderLayout(); })"></div>
           </div>
         </div>
       </div>
@@ -392,6 +391,76 @@
 </div>
 
 <script>
+/* ==================== 音效系统 ==================== */
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+// 在用户第一次交互时解锁音频上下文（iOS 必须）
+document.addEventListener('touchstart', initAudio, { once: true });
+document.addEventListener('mousedown', initAudio, { once: true });
+
+function playSound(type) {
+  try {
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+
+    if (type === 'click') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, now);
+      osc.frequency.exponentialRampToValueAtTime(1000, now + 0.05);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+      osc.start(now);
+      osc.stop(now + 0.05);
+    } else if (type === 'success') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now); // C5
+      osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+      osc.start(now);
+      osc.stop(now + 0.3);
+    } else if (type === 'error') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(200, now);
+      osc.frequency.exponentialRampToValueAtTime(150, now + 0.2);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+      osc.start(now);
+      osc.stop(now + 0.2);
+    } else if (type === 'snap') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1500, now);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
+      osc.start(now);
+      osc.stop(now + 0.03);
+    }
+  } catch (e) {
+    console.warn("音频播放失败", e);
+  }
+}
+
+// 全局按钮点击音效
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('button, .float-btn, .quick-card, .lib-act-btn');
+  if (btn) playSound('click');
+});
+
+/* ==================== 全局状态 ==================== */
 const state = {
   step: 'home',
   params: { template: 'seat_pad_cover', width: 600, depth: 460, cornerRadius: 30, seam: 10 },
@@ -420,6 +489,7 @@ const POS_LABEL = {
 let isCelebrating = false;
 
 function triggerSuccess(callback) {
+  playSound('success');
   if (isCelebrating) { if (callback) callback(); return; }
   isCelebrating = true;
   const overlay = document.getElementById('success-overlay');
@@ -461,13 +531,15 @@ function closeNumpad() {
 }
 function updateNumpadDisplay() { document.getElementById('np-text').textContent = currentNumpadVal; }
 function numpadInput(char) {
+  playSound('click');
   if (char === '.' && currentNumpadVal.includes('.')) return;
   if (currentNumpadVal.length >= 6) return;
   if (currentNumpadVal === '0' && char !== '.') currentNumpadVal = '';
   currentNumpadVal += char; updateNumpadDisplay();
 }
-function numpadBackspace() { currentNumpadVal = currentNumpadVal.slice(0, -1); updateNumpadDisplay(); }
+function numpadBackspace() { playSound('click'); currentNumpadVal = currentNumpadVal.slice(0, -1); updateNumpadDisplay(); }
 function numpadConfirm(btnEl) {
+  playSound('click');
   if (numpadAnimating) return; numpadAnimating = true;
   if (btnEl) btnEl.classList.add('anim-shrink');
   setTimeout(() => {
@@ -501,6 +573,7 @@ function go(name, push = true) {
 function back() { if (navStack.length > 1) { navStack.pop(); go(navStack[navStack.length - 1], false); } }
 function setHeard(text) { const el = document.getElementById('h-' + state.step); if (el) el.textContent = text; }
 function showToast(msg, warn = false) {
+  if (warn) playSound('error'); else playSound('click');
   const t = document.getElementById('toast'); t.textContent = msg;
   t.classList.toggle('warn', warn); t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
@@ -587,9 +660,9 @@ function getHoles(w, h, s) {
 }
 function markerSVG(cx, cy, sizePx, shape = 'v', stroke = '#00E5FF') {
   const s = Math.max(sizePx, 4), h = s / 2;
-  if (shape === 'square') return `<rect x="${cx-h}" y="${cy-h}" width="${s}" height="${s}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>`;
-  if (shape === 'triangle') { const R = s / Math.sqrt(3); const pts = [`${cx},${cy - R}`, `${cx + s/2},${cy + R/2}`, `${cx - s/2},${cy + R/2}`].join(' '); return `<polygon points="${pts}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>`; }
-  return `<polyline points="${cx+h},${cy-h} ${cx-h},${cy} ${cx+h},${cy+h}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (shape === 'square') return `<rect x="${cx-h}" y="${cy-h}" width="${s}" height="${s}" fill="none" stroke="${stroke}" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+  if (shape === 'triangle') { const R = s / Math.sqrt(3); const pts = [`${cx},${cy - R}`, `${cx + s/2},${cy + R/2}`, `${cx - s/2},${cy + R/2}`].join(' '); return `<polygon points="${pts}" fill="none" stroke="${stroke}" stroke-width="2" vector-effect="non-scaling-stroke"/>`; }
+  return `<polyline points="${cx+h},${cy-h} ${cx-h},${cy} ${cx+h},${cy+h}" fill="none" stroke="${stroke}" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
 }
 
 function generatePieces() {
@@ -693,8 +766,8 @@ function renderFeaturePreview() {
   const ox = (W - w*scale) / 2, oy = (H - h*scale) / 2;
   let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
   const d = 'M ' + outline.map(([x,y]) => `${ox+x*scale} ${oy+y*scale}`).join(' L ') + ' Z';
-  svg += `<path d="${d}" fill="none" stroke="var(--glow-blue)" stroke-width="1.5"/>`;
-  holes.forEach(hole => { const hd = 'M ' + hole.map(([x,y]) => `${ox+x*scale} ${oy+y*scale}`).join(' L ') + ' Z'; svg += `<path d="${hd}" fill="none" stroke="var(--glow-blue)" stroke-width="1"/>`; });
+  svg += `<path d="${d}" fill="none" stroke="var(--glow-blue)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`;
+  holes.forEach(hole => { const hd = 'M ' + hole.map(([x,y]) => `${ox+x*scale} ${oy+y*scale}`).join(' L ') + ' Z'; svg += `<path d="${hd}" fill="none" stroke="var(--glow-blue)" stroke-width="1" vector-effect="non-scaling-stroke"/>`; });
   notches.forEach((n, i) => {
     const cx = ox + n.x * scale, cy = oy + n.y * scale, sz = n.size * scale;
     let color = 'rgba(0, 229, 255, 0.4)';
@@ -720,8 +793,8 @@ function renderPreview() {
     const offY = pad + row * cellH + (cellH - bb.h * cellScale) / 2 - bb.minY * cellScale + 12;
     svg += `<g transform="translate(${offX},${offY}) scale(${cellScale})">`;
     const d = 'M ' + piece.outline.map(([x,y]) => `${x} ${y}`).join(' L ') + ' Z';
-    svg += `<path d="${d}" fill="none" stroke="var(--glow-blue)" stroke-width="${1.5/cellScale}"/>`;
-    piece.holes.forEach(hole => { const hd = 'M ' + hole.map(([x,y]) => `${x} ${y}`).join(' L ') + ' Z'; svg += `<path d="${hd}" fill="none" stroke="var(--glow-blue)" stroke-width="${1/cellScale}"/>`; });
+    svg += `<path d="${d}" fill="none" stroke="var(--glow-blue)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`;
+    piece.holes.forEach(hole => { const hd = 'M ' + hole.map(([x,y]) => `${x} ${y}`).join(' L ') + ' Z'; svg += `<path d="${hd}" fill="none" stroke="var(--glow-blue)" stroke-width="1" vector-effect="non-scaling-stroke"/>`; });
     piece.notches.forEach(n => { svg += markerSVG(n.x, n.y, n.size, n.shape, 'var(--glow-blue)'); });
     svg += `</g>`;
     const labelX = pad + col * cellW + 8, labelY = pad + row * cellH + 20;
@@ -786,8 +859,11 @@ function updateLibButton() { const btn = document.getElementById('lib-layout-btn
 
 function pushHistory(snapshotStr) {
   const str = snapshotStr || JSON.stringify({ pieces: state.layoutPieces, qty: state.layoutQty });
-  state.undoStack.push(str); if (state.undoStack.length > 30) state.undoStack.shift();
-  state.redoStack = []; updateUndoRedoButtons();
+  if (state.undoStack.length > 0 && state.undoStack[state.undoStack.length - 1] === str) return;
+  state.undoStack.push(str); 
+  if (state.undoStack.length > 30) state.undoStack.shift();
+  state.redoStack = []; 
+  updateUndoRedoButtons();
 }
 function undoLayout() {
   if (state.undoStack.length === 0) return;
@@ -803,14 +879,15 @@ function redoLayout() {
 }
 function updateUndoRedoButtons() {
   const btnU = document.getElementById('btn-undo'), btnR = document.getElementById('btn-redo');
-  if (btnU) btnU.disabled = state.undoStack.length === 0; if (btnR) btnR.disabled = state.redoStack.length === 0;
+  if (btnU) btnU.disabled = state.undoStack.length === 0;
+  if (btnR) btnR.disabled = state.redoStack.length === 0;
 }
 
 function enterLayout() {
   state.view = { scale: 1, tx: 0, ty: 0 }; state.undoStack = []; state.redoStack = [];
   const lib = loadLibrary();
   if (state.layoutItems.length === 0) {
-    document.getElementById('layout-canvas').innerHTML = '<div class="canvas-float-bar"><div class="float-group"><button class="float-btn" disabled>↶</button><button class="float-btn" disabled>↷</button></div><div class="float-group"><button class="float-btn" onclick="resetView()">⛶</button></div></div><div style="color:var(--glow-blue);font-size:20px">请先在库中选择款式</div>';
+    document.getElementById('layout-svg-container').innerHTML = '<div style="color:var(--glow-blue);font-size:20px; display:flex; align-items:center; justify-content:center; height:100%;">请先在库中选择款式</div>';
     document.getElementById('piece-list').innerHTML = '<div class="piece-empty">库中暂无选中款式</div>';
     updateUndoRedoButtons(); return;
   }
@@ -825,6 +902,7 @@ function enterLayout() {
     state.layoutQty = newQty; rebuildLayoutPieces(true);
   } else if (state.layoutPieces.length === 0 && Object.keys(state.layoutQty).length > 0) { rebuildLayoutPieces(true); }
   document.getElementById('fw-val').textContent = state.fabricWidth; document.getElementById('fl-val').textContent = state.fabricLength;
+  focusPieces();
   renderLayout(); renderPieceList(); updateUndoRedoButtons();
 }
 function startLayoutFromLibrary() { if (state.layoutItems.length === 0) { showToast('请先选择款式', true); return; } state._lastLayoutItemsKey = ''; go('layout'); }
@@ -857,7 +935,7 @@ function autoArrangeNewPieces(pieces) {
     p.offset = [cx - bb.minX, cy - bb.minY]; p.userMoved = false; cx += bb.w; rh = Math.max(rh, bb.h);
   }
 }
-function autoArrangeAll() { pushHistory(); autoArrangeNewPieces(state.layoutPieces); renderLayout(); showToast('已紧密排版 ✓'); }
+function autoArrangeAll() { pushHistory(); autoArrangeNewPieces(state.layoutPieces); focusPieces(); renderLayout(); showToast('已紧密排版 ✓'); }
 function renderPieceList() {
   const lib = loadLibrary(), el = document.getElementById('piece-list');
   if (state.layoutItems.length === 0) { el.innerHTML = '<div class="piece-empty">请从库中选择款式</div>'; return; }
@@ -875,42 +953,107 @@ function renderPieceList() {
 function changePieceQty(libraryId, pieceId, delta) {
   const qKey = `${libraryId}_${pieceId}`, cur = state.layoutQty[qKey] !== undefined ? state.layoutQty[qKey] : 1;
   const next = Math.max(0, Math.min(99, cur + delta)); if (next === cur) return;
-  pushHistory(); state.layoutQty[qKey] = next; rebuildLayoutPieces(false); renderLayout(); renderPieceList();
+  pushHistory(); state.layoutQty[qKey] = next; rebuildLayoutPieces(false); focusPieces(); renderLayout(); renderPieceList();
 }
 function computeKPIs() {
   let maxY = 0, placedArea = 0;
   for (const p of state.layoutPieces) { const bb = bbox(p.outline); maxY = Math.max(maxY, p.offset[1] + bb.maxY); placedArea += polygonArea(p.outline); }
   const util = placedArea / (state.fabricWidth * state.fabricLength); return { util, used: maxY };
 }
+
 function renderLayout() {
-  const c = document.getElementById('layout-canvas');
-  c.innerHTML = `<div class="canvas-float-bar"><div class="float-group"><button class="float-btn" id="btn-undo" onclick="undoLayout()" ${state.undoStack.length===0?'disabled':''}>↶</button><button class="float-btn" id="btn-redo" onclick="redoLayout()" ${state.redoStack.length===0?'disabled':''}>↷</button></div><div class="float-group"><button class="float-btn" onclick="resetView()">⛶</button></div></div>`;
-  if (state.layoutPieces.length === 0) { c.innerHTML += '<div style="color:var(--glow-blue);font-size:20px">暂无排版的裁片</div>'; document.getElementById('layout-step').textContent = '利用率 0%'; document.getElementById('fabric-info').textContent = `已用 0m`; return; }
-  const fw = state.fabricWidth, fl = state.fabricLength, pad = 20, W = 360, H = 480;
-  const baseScale = Math.min((W-pad*2)/fw, (H-pad*2)/fl);
-  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="touch-action:none"><g id="viewport" transform="translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})">`;
-  svg += `<rect x="${pad}" y="${pad}" width="${fw*baseScale}" height="${fl*baseScale}" fill="none" stroke="rgba(0, 229, 255, 0.3)" stroke-width="1" stroke-dasharray="4 4"/><g id="snap-guides" pointer-events="none"></g>`;
+  const container = document.getElementById('layout-svg-container');
+  if (state.layoutPieces.length === 0) {
+    container.innerHTML = '<div style="color:var(--glow-blue);font-size:20px; display:flex; align-items:center; justify-content:center; height:100%;">暂无排版的裁片</div>';
+    document.getElementById('layout-step').textContent = '利用率 0%';
+    document.getElementById('fabric-info').textContent = `已用 0m`;
+    updateUndoRedoButtons();
+    return;
+  }
+  
+  const W = 360, H = 480;
+  const fs = 14 / state.view.scale; // 动态计算字体大小，保证屏幕上显示大小一致
+  
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;"><g id="viewport" transform="translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})">`;
+  
+  // 绘制极浅的虚线边界（带有 non-scaling-stroke，不会被撑粗）
+  svg += `<rect x="0" y="0" width="${state.fabricWidth}" height="${state.fabricLength}" fill="none" stroke="rgba(0, 229, 255, 0.2)" stroke-width="2" stroke-dasharray="10 10" vector-effect="non-scaling-stroke"/><g id="snap-guides" pointer-events="none"></g>`;
+  
   state.layoutPieces.forEach((p, idx) => {
-    const [dx, dy] = p.offset, tx = x => pad + (x + dx) * baseScale, ty = y => pad + (y + dy) * baseScale;
-    svg += `<g data-piece-idx="${idx}">`;
-    const d = 'M ' + p.outline.map(([x,y]) => `${tx(x)} ${ty(y)}`).join(' L ') + ' Z';
-    svg += `<path d="${d}" fill="none" stroke="var(--glow-blue)" stroke-width="1.2" pointer-events="all"/>`;
-    p.holes.forEach(hole => { const hd = 'M ' + hole.map(([x,y]) => `${tx(x)} ${ty(y)}`).join(' L ') + ' Z'; svg += `<path d="${hd}" fill="none" stroke="var(--glow-blue)" stroke-width="1" pointer-events="none"/>`; });
-    p.notches.forEach(n => { const sz = n.size * baseScale; svg += markerSVG(tx(n.x), ty(n.y), sz, n.shape, 'var(--glow-blue)'); });
-    const bb = bbox(p.outline), cx = tx(bb.minX + bb.w/2), cy = ty(bb.minY + bb.h/2);
-    svg += `<text x="${cx}" y="${cy}" fill="var(--glow-blue)" font-size="16" font-weight="800" text-anchor="middle" opacity="0.9" pointer-events="none">${p.pieceId}</text></g>`;
+    const [dx, dy] = p.offset;
+    // 所有相对坐标
+    const d = 'M ' + p.outline.map(([x,y]) => `${x} ${y}`).join(' L ') + ' Z';
+    // 标签位置使用包围盒中心
+    const bb = bbox(p.outline);
+    const cx = bb.minX + bb.w/2;
+    const cy = bb.minY + bb.h/2;
+    
+    // 使用 <g> 标签的 transform 来统一控制移动
+    svg += `<g data-piece-idx="${idx}" transform="translate(${dx}, ${dy})">`;
+    svg += `<path d="${d}" fill="none" stroke="var(--glow-blue)" stroke-width="2" pointer-events="all" vector-effect="non-scaling-stroke"/>`;
+    p.holes.forEach(hole => { const hd = 'M ' + hole.map(([x,y]) => `${x} ${y}`).join(' L ') + ' Z'; svg += `<path d="${hd}" fill="none" stroke="var(--glow-blue)" stroke-width="1.5" pointer-events="none" vector-effect="non-scaling-stroke"/>`; });
+    p.notches.forEach(n => { 
+      // markerSVG 内部已经加入了 non-scaling-stroke
+      svg += markerSVG(n.x, n.y, n.size, n.shape, 'var(--glow-blue)'); 
+    });
+    
+    svg += `<text x="${cx}" y="${cy}" fill="var(--glow-blue)" font-size="${fs}" font-weight="800" text-anchor="middle" dominant-baseline="middle" opacity="0.9" pointer-events="none">${p.pieceId}</text></g>`;
   });
-  svg += `</g></svg>`; c.innerHTML += svg; updateKPIsAndHints();
+  svg += `</g></svg>`;
+  
+  container.innerHTML = svg;
+  updateKPIsAndHints();
+  updateUndoRedoButtons();
 }
+
 function updateKPIsAndHints() {
-  const kpi = computeKPIs(); document.getElementById('layout-step').textContent = `利用率 ${(kpi.util * 100).toFixed(0)}%`; document.getElementById('fabric-info').textContent = `已用 ${(kpi.used / 1000).toFixed(2)}m`;
+  const kpi = computeKPIs(); 
+  document.getElementById('layout-step').textContent = `利用率 ${(kpi.util * 100).toFixed(0)}%`; 
+  document.getElementById('fabric-info').textContent = `已用 ${(kpi.used / 1000).toFixed(2)}m`;
 }
-function resetView() { state.view = { scale: 1, tx: 0, ty: 0 }; renderLayout(); }
+
+function focusPieces() {
+  if (state.layoutPieces.length === 0) { state.view = { scale: 1, tx: 0, ty: 0 }; return; }
+  
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  state.layoutPieces.forEach(p => {
+    const bb = bbox(p.outline);
+    const px = p.offset[0], py = p.offset[1];
+    if (px + bb.minX < minX) minX = px + bb.minX;
+    if (py + bb.minY < minY) minY = py + bb.minY;
+    if (px + bb.maxX > maxX) maxX = px + bb.maxX;
+    if (py + bb.maxY > maxY) maxY = py + bb.maxY;
+  });
+  
+  if (minX === Infinity) return;
+
+  const W = 360, H = 480, pad = 20;
+  const w = maxX - minX, h = maxY - minY;
+  
+  const targetW = (W - pad*2) * 0.8;
+  const targetH = (H - pad*2) * 0.8;
+  
+  let scale = 1;
+  // 现在的坐标系是 1:1 mm，因此可以直接用物理宽高来算缩放比例
+  if (w > 0 && h > 0) {
+    scale = Math.min(targetW / w, targetH / h);
+  }
+  
+  scale = Math.min(scale, 5); 
+  
+  const cx = minX + w / 2;
+  const cy = minY + h / 2;
+  
+  state.view.scale = scale;
+  state.view.tx = W / 2 - cx * scale;
+  state.view.ty = H / 2 - cy * scale;
+}
 
 let dragState = null, panState = null, pinchState = null, dragStartState = null;
 let panVelocity = { x: 0, y: 0 }, lastPanPos = { x: 0, y: 0 }, lastPanTime = 0, panAnimId = null;
 function getTouchPos(e) { if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY }; return { x: e.clientX, y: e.clientY }; }
 function getTouchDist(e) { if (!e.touches || e.touches.length < 2) return 0; return Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
+
 function onCanvasPointerDown(e) {
   if (panAnimId) cancelAnimationFrame(panAnimId);
   if (e.touches && e.touches.length === 2) {
@@ -924,7 +1067,7 @@ function onCanvasPointerDown(e) {
     const idx = parseInt(target.dataset.pieceIdx); if (isNaN(idx)) return;
     const piece = state.layoutPieces[idx]; if (!piece) return; e.preventDefault();
     dragStartState = JSON.stringify({ pieces: state.layoutPieces, qty: state.layoutQty });
-    dragState = { idx, startX: pos.x, startY: pos.y, startOffset: [...piece.offset], node: target };
+    dragState = { idx, startX: pos.x, startY: pos.y, startOffset: [...piece.offset], node: target, wasSnapped: false };
     target.classList.add('dragging'); target.parentNode.appendChild(target); 
   } else {
     e.preventDefault(); panState = { startX: pos.x, startY: pos.y, startTx: state.view.tx, startTy: state.view.ty };
@@ -935,10 +1078,13 @@ function onCanvasPointerMove(e) {
   const pos = getTouchPos(e);
   if (e.touches && e.touches.length === 2 && pinchState) {
     e.preventDefault(); const dist = getTouchDist(e), factor = dist / pinchState.dist;
-    state.view.scale = Math.max(0.5, Math.min(5, pinchState.startScale * factor));
+    state.view.scale = Math.max(0.05, Math.min(10, pinchState.startScale * factor));
     const curCenter = { x: (e.touches[0].clientX + e.touches[1].clientX)/2, y: (e.touches[0].clientY + e.touches[1].clientY)/2 };
     state.view.tx = pinchState.startTx + (curCenter.x - pinchState.center.x); state.view.ty = pinchState.startTy + (curCenter.y - pinchState.center.y);
-    const vp = document.getElementById('viewport'); if (vp) vp.setAttribute('transform', `translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})`); return;
+    const vp = document.getElementById('viewport'); if (vp) vp.setAttribute('transform', `translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})`); 
+    // 动态更新字体大小
+    document.querySelectorAll('.layout-canvas text').forEach(t => t.setAttribute('font-size', 14 / state.view.scale));
+    return;
   }
   if (panState) {
     e.preventDefault(); const dx = pos.x - panState.startX, dy = pos.y - panState.startY;
@@ -949,25 +1095,41 @@ function onCanvasPointerMove(e) {
     const vp = document.getElementById('viewport'); if (vp) vp.setAttribute('transform', `translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})`); return;
   }
   if (dragState) {
-    e.preventDefault(); const W = 360, H = 480, baseScale = Math.min((W-40)/state.fabricWidth, (H-40)/state.fabricLength), mmPerPx = 1 / (baseScale * state.view.scale);
+    e.preventDefault(); 
+    const mmPerPx = 1 / state.view.scale;
     const dxMM = (pos.x - dragState.startX) * mmPerPx, dyMM = (pos.y - dragState.startY) * mmPerPx;
     const piece = state.layoutPieces[dragState.idx], bb = bbox(piece.outline);
     let newOffset = [dragState.startOffset[0] + dxMM, dragState.startOffset[1] + dyMM];
+    
+    // 限制在布幅内
     newOffset[0] = Math.max(-bb.minX, Math.min(state.fabricWidth - bb.maxX, newOffset[0]));
     newOffset[1] = Math.max(-bb.minY, Math.min(state.fabricLength - bb.maxY, newOffset[1]));
+    
     const snap = findSmartSnap(piece, newOffset, dragState.idx, mmPerPx);
     if (snap.dx !== 0) newOffset[0] += snap.dx; if (snap.dy !== 0) newOffset[1] += snap.dy;
     piece.offset = newOffset; piece.userMoved = true;
-    if (snap.dx !== 0 || snap.dy !== 0) dragState.node.classList.add('snapped'); else dragState.node.classList.remove('snapped');
-    const pad = 20, gx = pad + newOffset[0] * baseScale, gy = pad + newOffset[1] * baseScale;
+    
+    // 播放吸附音效，只在刚吸附上的那一瞬间播放
+    if (snap.dx !== 0 || snap.dy !== 0) {
+      dragState.node.classList.add('snapped');
+      if (!dragState.wasSnapped) {
+         playSound('snap');
+         dragState.wasSnapped = true;
+      }
+    } else {
+      dragState.node.classList.remove('snapped');
+      dragState.wasSnapped = false;
+    }
+    
+    // 直接修改 g 的 transform，内部的 text 和 path 会自动跟随
+    const gx = newOffset[0], gy = newOffset[1];
     dragState.node.setAttribute('transform', `translate(${gx}, ${gy})`);
-    const pathEl = dragState.node.querySelector('path');
-    if (pathEl) { const d = 'M ' + piece.outline.map(([x,y]) => `${x*baseScale} ${y*baseScale}`).join(' L ') + ' Z'; pathEl.setAttribute('d', d); }
+    
     const guides = document.getElementById('snap-guides');
     if (guides) {
       let gHtml = '';
-      if (snap.guideX !== null) gHtml += `<line x1="${pad + snap.guideX * baseScale}" y1="${pad}" x2="${pad + snap.guideX * baseScale}" y2="${pad + state.fabricLength * baseScale}" stroke="var(--glow-blue)" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.8"/>`;
-      if (snap.guideY !== null) gHtml += `<line x1="${pad}" y1="${pad + snap.guideY * baseScale}" x2="${pad + state.fabricWidth * baseScale}" y2="${pad + snap.guideY * baseScale}" stroke="var(--glow-blue)" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.8"/>`;
+      if (snap.guideX !== null) gHtml += `<line x1="${snap.guideX}" y1="0" x2="${snap.guideX}" y2="${state.fabricLength}" stroke="var(--glow-blue)" stroke-width="2" stroke-dasharray="5 5" opacity="0.8" vector-effect="non-scaling-stroke"/>`;
+      if (snap.guideY !== null) gHtml += `<line x1="0" y1="${snap.guideY}" x2="${state.fabricWidth}" y2="${snap.guideY}" stroke="var(--glow-blue)" stroke-width="2" stroke-dasharray="5 5" opacity="0.8" vector-effect="non-scaling-stroke"/>`;
       guides.innerHTML = gHtml;
     }
     updateKPIsAndHints();
@@ -991,8 +1153,9 @@ function onCanvasPointerUp(e) {
 }
 function onCanvasWheel(e) {
   e.preventDefault(); const factor = e.deltaY < 0 ? 1.1 : 0.9;
-  state.view.scale = Math.max(0.5, Math.min(5, state.view.scale * factor));
+  state.view.scale = Math.max(0.05, Math.min(10, state.view.scale * factor));
   const vp = document.getElementById('viewport'); if (vp) vp.setAttribute('transform', `translate(${state.view.tx}, ${state.view.ty}) scale(${state.view.scale})`);
+  document.querySelectorAll('.layout-canvas text').forEach(t => t.setAttribute('font-size', 14 / state.view.scale));
 }
 function findSmartSnap(piece, newOffset, excludeIdx, mmPerPx) {
   const bb = bbox(piece.outline);
